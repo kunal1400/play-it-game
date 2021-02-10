@@ -137,7 +137,7 @@ class Play_It_Game_Public {
 			if ( !empty($_GET['already_emails']) ) {
 				$html .= "<div style='color: #f52f2f;font-style: italic;'>".$_GET['already_emails']." already associated with other teams</div>";
 			}
-			
+
 			/**
 			* #3: Getting all the teams of the current user
 			**/
@@ -263,12 +263,17 @@ class Play_It_Game_Public {
 	public function init_actions() {
 		global $wp;
 		// if ( 'page' === get_post_type() AND is_singular() ) {
+		
+		// #1: Getting the current user info
+		$playit_team_created_by = get_current_user_id();
+		$currentUser = get_userdata($playit_team_created_by);
 
+		// #2: Inserting/Updating the team and team members according to request data
 		if( isset($_REQUEST['playit_member_emails']) && isset($_REQUEST['playit_team_name']) ) {
 			$playit_team_name 		= $_REQUEST['playit_team_name'];
 			$playit_member_emails 	= explode(",", $_REQUEST['playit_member_emails']);
 			$playit_current_page_id = $_REQUEST['playit_current_page_id'];
-			$playit_team_created_by = get_current_user_id();
+			$playit_member_emails[] = $currentUser->data->user_email;
 
 			// Checking if member emails is associated in team or not
 			$emailsToInsert = array();
@@ -343,42 +348,42 @@ class Play_It_Game_Public {
 	* Returning the games associated with the current logged in user
 	**/
 	public function list_user_games_cb( $atts ) {
-		$attributes = shortcode_atts( array(
-			'productid' => 'current'
-		), $atts );
+		// $attributes = shortcode_atts( array(
+		// 	'productid' => 'current'
+		// ), $atts );
 
-		if( !is_user_logged_in() ) {			
-			return;
-		}
-		else {
-			$html = "";
-			$html .= "<p>Your Games</p>";
-			$currentUserId = get_current_user_id();	
-			$userGames = $this->getUserTeamsById( $currentUserId );
-			if ( is_array($userGames) && count($userGames) > 0 ) {
-				$html .= '<table>
-				<tr>
-					<th width="30">S.No</th>
-					<th>Name</th>
-					<th>Associated Team</th>
-				</tr>';
-				foreach ($userGames as $i => $gameInfo) {
-					if (!empty($gameInfo['game_id'])) {
-						$pageData = get_post( $gameInfo['game_id'] );
-						$html .= '<tr>
-							<th>'.($i+1).'</th>
-							<th><a href="'.$pageData->guid.'">'.$pageData->post_title.'</a></th>
-							<th>'.$gameInfo['team_name'].'</th>
-						</tr>';
+		// if( !is_user_logged_in() ) {			
+		// 	return;
+		// }
+		// else {
+		// 	$html = "";
+		// 	$html .= "<p>Your Games</p>";
+		// 	$currentUserId = get_current_user_id();	
+		// 	$userGames = $this->getUserTeamsById( $currentUserId );
+		// 	if ( is_array($userGames) && count($userGames) > 0 ) {
+		// 		$html .= '<table>
+		// 		<tr>
+		// 			<th width="30">S.No</th>
+		// 			<th>Name</th>
+		// 			<th>Associated Team</th>
+		// 		</tr>';
+		// 		foreach ($userGames as $i => $gameInfo) {
+		// 			if (!empty($gameInfo['game_id'])) {
+		// 				$pageData = get_post( $gameInfo['game_id'] );
+		// 				$html .= '<tr>
+		// 					<th>'.($i+1).'</th>
+		// 					<th><a href="'.$pageData->guid.'">'.$pageData->post_title.'</a></th>
+		// 					<th>'.$gameInfo['team_name'].'</th>
+		// 				</tr>';
 
-						$html .= '<p></p>';
-					}
-				}
-				$html .= '</table>';				
-			}
+		// 				$html .= '<p></p>';
+		// 			}
+		// 		}
+		// 		$html .= '</table>';				
+		// 	}
 			
-			return $html;
-		}
+		// 	return $html;
+		// }
 	}
 
 	public function getAllTeams( $gamesId ) {
@@ -401,11 +406,12 @@ class Play_It_Game_Public {
 		return $wpdb->query( "UPDATE $tblname SET members_email='$emails' WHERE id = $teamId" );
 	}
 
-	public function getUserTeamsById( $userId ) {
+	public function getUserTeamsById( $userId ) {		
 		global $wpdb;
-		$tblname = $wpdb->prefix . 'gm_teams';
-		$sql = "SELECT * FROM $tblname WHERE created_by=$userId";
-		return $wpdb->get_results($sql, ARRAY_A);
+		$gamesId = array();
+		$currentUser = get_userdata($userId);
+		$userEmail = $currentUser->data->user_email;
+		return $this->getUserTeamsByEmail($userEmail);
 	}
 
 	public function getUserTeamsByEmail( $userEmail ) {
