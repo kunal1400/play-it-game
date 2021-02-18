@@ -172,7 +172,7 @@ class Play_It_Game_Public {
 						if ( !$nextLevelLink ) {
 							$nextLevelLink = $post->guid;
 						}
-						$buttons = '<a href="'.$nextLevelLink.'&currentTeamId='.$team['id'].'" class="button button-black">Start Playing</a>';
+						$buttons = '<a href="'.add_query_arg('currentTeamId',$team['id'], $nextLevelLink ).'" class="button button-black">Start Playing</a>';
 					} else {
 						$buttons = '-';
 					}
@@ -277,10 +277,10 @@ class Play_It_Game_Public {
 
 			// Checking if member emails is associated in team or not
 			$emailsToInsert = array();
-			$alreadyEmails = array();
+			$alreadyEmails 	= array();
 			if ($playit_member_emails && count($playit_member_emails)) {
 				foreach ($playit_member_emails as $i => $email) {
-					$teamForThisEmail = $this->getUserTeamsByEmail($email);
+					$teamForThisEmail = $this->getUserTeamsInGameByEmail( $playit_current_page_id, $email );
 					if (is_array($teamForThisEmail) && count($teamForThisEmail) > 0) {
 						$alreadyEmails[] = $email;						
 					}
@@ -291,18 +291,20 @@ class Play_It_Game_Public {
 			}			
 
 			// If error is present then show error message
+			$manageTeamResponse = false;
 			if (is_array($emailsToInsert) && count($emailsToInsert) > 0) {
-				$manageTeamResponse = $this->manageTeam($playit_team_name, implode(",", $emailsToInsert), $playit_current_page_id, $playit_team_created_by);
-				if ($manageTeamResponse) {
-					wp_redirect( $_SERVER['HTTP_REFERER'] );
-					exit;
-				}
+				$manageTeamResponse = $this->manageTeam($playit_team_name, implode(",", $emailsToInsert), $playit_current_page_id, $playit_team_created_by);				
 			}
 
 			// If error is present then show error message
 			if (is_array($alreadyEmails) && count($alreadyEmails) > 0) {
 				$redirectWithQueryString = $_SERVER['HTTP_REFERER']."?error_msg=true&already_emails=".implode(",", $alreadyEmails);
 				wp_redirect( $redirectWithQueryString );
+				exit;
+			}
+
+			if ($manageTeamResponse) {
+				wp_redirect( $_SERVER['HTTP_REFERER'] );
 				exit;
 			}
 		}
@@ -421,6 +423,13 @@ class Play_It_Game_Public {
 		return $wpdb->get_results($sql, ARRAY_A);
 	}
 
+	public function getUserTeamsInGameByEmail( $gameId, $userEmail ) {
+		global $wpdb;
+		$tblname = $wpdb->prefix . 'gm_teams';
+		$sql = "SELECT * FROM $tblname WHERE game_id=$gameId AND members_email LIKE '%$userEmail%'";
+		return $wpdb->get_results($sql, ARRAY_A);
+	}
+
 	public function getUserTeamId( $userId ) {
 		$userTeams = $this->getUserTeamsById( $userId );		
 		$teamIds = array();
@@ -439,9 +448,9 @@ class Play_It_Game_Public {
 		return $wpdb->get_row($sql, ARRAY_A);
 	}
 
-	public function manageGameLevel($team_id, $game_id, $user_id, $level_id, $time_taken, $is_cleared) {
+	public function manageGameLevel($team_id, $game_id, $user_id, $level_id, $time_taken=null, $is_cleared=0) {
 		global $table_prefix, $wpdb;
-		$time_taken = time();
+		// $time_taken = time();
 		$tblname = $table_prefix . 'gm_games';
 		
 		// Checking the attribute value in db
@@ -488,6 +497,10 @@ class Play_It_Game_Public {
 		$currentTeamId = 0;
 		if (!empty($_GET['currentTeamId'])) {
 			$currentTeamId = $_GET['currentTeamId'];
+			$teamInfo = $this->getTeamById( $currentTeamId );
+			if ( empty($teamInfo) ) {
+				return 'The team you selected doesn\'t exists <a href="'.$gameHomePage->guid.'">click here</a> to go to game page';	
+			}			
 		}
 		else {
 			// wp_redirect($gameHomePage->guid);
@@ -501,7 +514,7 @@ class Play_It_Game_Public {
 		// // #4: Getting Next Level Link
 		// $nextLevel = $this->get_next($allLevels, $post->ID);
 
-		$nextLevel = $this->getGameNextLevelLink( $post->ID )."&currentTeamId=$currentTeamId";
+		$nextLevel = add_query_arg( 'currentTeamId', $currentTeamId, $this->getGameNextLevelLink( $post->ID ));
 		if ( !$nextLevel ) {
 			$nextLevel = $gameHomePage->guid;
 		}
@@ -519,8 +532,14 @@ class Play_It_Game_Public {
 				if ( !empty($_POST['_next_step_answer']) ) {
 					// 45HH
 					if ( strtolower($_POST['_next_step_answer']) == strtolower($attributes['answer']) ) {
+						
+						// Inserting the time taken by the team in db also
+						$timeTaken = null;
+						if ( isset($_POST['_time_taken']) ) {
+							$timeTaken = $_POST['_time_taken'];
+						}
 
-						$gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, time(), 1);
+						$gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, $timeTaken, 1);
 
 						if ($gameLevelRes) {
 							wp_redirect($nextLevel);
@@ -550,10 +569,11 @@ class Play_It_Game_Public {
 		* #7: Finally rendering the form/next level message
 		**/
 		if ($isCurrentLevelCleared) {
-			return '<div>You already cleared this level <a href="'.$nextLevel.'">click here</a> to go next level</div>';
+			return '<div class="timer"></div><div>You already cleared this level <a href="'.$nextLevel.'">click here</a> to go next level</div>'.$post->ID;
 		}
 		else {
-			return '<form method="post" action="">
+			return '<div class="timer"></div><form method="post" action="">
+			<input type="hidden" value="0" name="_time_taken" />
 			<input type="text" name="_next_step_answer" />
 			<input type="submit" value="Submit" />
 		</form>'.$errorMessage;
@@ -620,7 +640,7 @@ class Play_It_Game_Public {
 	}
 
 	public function getGameNextLevelLink( $gameId ) {
-		$allLevels = $this->getOtherLevels( $gameId );		
+		$allLevels = $this->getOtherLevels( $gameId );
 		$nextLevel = $this->get_next( $allLevels, $gameId );
 		if ( !$nextLevel ) {
 			// https://stackoverflow.com/questions/1921421/get-the-first-element-of-an-array

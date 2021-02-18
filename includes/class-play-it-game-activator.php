@@ -58,7 +58,7 @@ class Play_It_Game_Activator {
 	        $sql .= "  `game_id` int(128) NOT NULL, ";
 	        $sql .= "  `user_id` int(128) NOT NULL, ";
 	        $sql .= "  `level_id` int(128) NOT NULL, ";
-	        $sql .= "  `time_taken` VARCHAR(50) NOT NULL, ";
+	        $sql .= "  `time_taken` int(128) NOT NULL, ";
 	        $sql .= "  `is_cleared` BOOLEAN NOT NULL, ";
 	        $sql .= "  PRIMARY KEY (`id`) "; 
 	        $sql .= "); ";

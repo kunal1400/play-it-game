@@ -73,3 +73,11 @@ input[type=submit]:hover {
 .button-red {background-color: #f44336;} /* Red */
 .button-gray {background-color: #e7e7e7; color: black;} /* Gray */
 .button-black {background-color: #555555;} /* Black */
+
+.timerwrapper {
+    max-width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    justify-content: center;
+    display: flex;
+}
