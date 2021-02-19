@@ -96,6 +96,17 @@ class Play_It_Game_Public {
 		global $table_prefix, $wpdb;		
 	}
 
+	public function getTeamPosition( $gameId, $teamId ) {
+		global $post;
+		/**
+		* #1: Getting all the levels of the current game (i.e Page)
+		**/
+		$gameLevels = get_pages(array(
+			'child_of' => $post->ID
+		));
+		// getLevelInfo( $teamId, $levelId );
+	}
+
 	public function game_home_page_cb( $atts ) {
 		global $table_prefix;
 		global $wpdb;
@@ -148,12 +159,12 @@ class Play_It_Game_Public {
 			**/
 			$teams = $this->getAllTeams( $post->ID );			
 			if ( is_array($teams) && count($teams) > 0 ) {
-				$html .= "<h3>Choose Team:</h3>";				
+				$html .= "<h3>Choose Team:</h3>";
 				$html .= "<table id='teams'>
 					<thead>
 						<th width='100'>S.No</th>
 						<th>Team Name</th>
-						<th>Team Position</th>
+						<th width='100'>Time Taken (In Sec)</th>
 						<th>Member Emails</th>
 						<th>Action</th>
 					</thead>";
@@ -172,7 +183,7 @@ class Play_It_Game_Public {
 						if ( !$nextLevelLink ) {
 							$nextLevelLink = $post->guid;
 						}
-						$buttons = '<a href="'.add_query_arg('currentTeamId',$team['id'], $nextLevelLink ).'" class="button button-black">Start Playing</a>';
+						$buttons = '<a href="'.add_query_arg('currentTeamId', $team['id'], $nextLevelLink ).'" class="button button-black">Start Playing</a>';
 					} else {
 						$buttons = '-';
 					}
@@ -180,7 +191,7 @@ class Play_It_Game_Public {
 					$html .= '<tr>
 						<td>'.($i+1).'</td>
 						<td>'.$team['team_name'].'</td>
-						<td>-</td>
+						<td>'.$team['total_time_taken'].'</td>
 						<td>'.$team['members_email'].'</td>
 						<td>'.$buttons.'</td>
 					</tr>';
@@ -273,7 +284,7 @@ class Play_It_Game_Public {
 			$playit_team_name 		= $_REQUEST['playit_team_name'];
 			$playit_member_emails 	= explode(",", $_REQUEST['playit_member_emails']);
 			$playit_current_page_id = $_REQUEST['playit_current_page_id'];
-			$playit_member_emails[] = $currentUser->data->user_email;
+			// $playit_member_emails[] = $currentUser->data->user_email;
 
 			// Checking if member emails is associated in team or not
 			$emailsToInsert = array();
@@ -293,7 +304,11 @@ class Play_It_Game_Public {
 			// If error is present then show error message
 			$manageTeamResponse = false;
 			if (is_array($emailsToInsert) && count($emailsToInsert) > 0) {
-				$manageTeamResponse = $this->manageTeam($playit_team_name, implode(",", $emailsToInsert), $playit_current_page_id, $playit_team_created_by);				
+				// Pushing current user email in array also
+				$emailsToInsert[] 	= $currentUser->data->user_email;
+
+				// Creating a team
+				$manageTeamResponse = $this->manageTeam($playit_team_name, implode(",", array_unique($emailsToInsert)), $playit_current_page_id, $playit_team_created_by);				
 			}
 
 			// If error is present then show error message
@@ -337,12 +352,12 @@ class Play_It_Game_Public {
 		// Checking the attribute value in db
 		$row = $wpdb->get_row( "SELECT * FROM $tblname WHERE game_id = $gameId AND created_by=$createdBy", ARRAY_A );
 
-		if ( is_array($row) && count($row) > 0 ) {
+		/*if ( is_array($row) && count($row) > 0 ) {
 	    	$sql = "UPDATE $tblname SET team_name='$teamName', members_email='$memberEmails' WHERE game_id = $gameId AND created_by=$createdBy";
 		} 
-		else {
+		else {*/
 			$sql = "INSERT INTO $tblname (team_name, members_email, game_id, created_by) VALUES ('$teamName', '$memberEmails', $gameId, $createdBy)";
-		}
+		// }
 		return $wpdb->query($sql);
 	}
 	
@@ -390,8 +405,10 @@ class Play_It_Game_Public {
 
 	public function getAllTeams( $gamesId ) {
 		global $wpdb;
-		$tblname = $wpdb->prefix . 'gm_teams';
-		$sql = "SELECT * FROM $tblname WHERE game_id = $gamesId";
+		$gamesTable = $wpdb->prefix . 'gm_games';
+		$teamsTable = $wpdb->prefix . 'gm_teams';		
+		$sql = "SELECT *, (SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as total_time_taken, (SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels, (SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id) as total_levels FROM $teamsTable as t WHERE game_id = $gamesId ORDER BY total_time_taken ASC, cleared_levels DESC";
+		// $sql = "SELECT * FROM $tblname WHERE game_id = $gamesId";
 		return $wpdb->get_results($sql, ARRAY_A);
 	}
 
@@ -448,20 +465,50 @@ class Play_It_Game_Public {
 		return $wpdb->get_row($sql, ARRAY_A);
 	}
 
+	public function getLevelInfo( $teamId, $levelId ) {
+		global $wpdb;
+		$tblname = $wpdb->prefix . 'gm_games';
+		$sql = "SELECT * FROM $tblname WHERE level_id=$levelId AND team_id=$teamId";
+		return $wpdb->get_row($sql, ARRAY_A);
+	}
+
 	public function manageGameLevel($team_id, $game_id, $user_id, $level_id, $time_taken=null, $is_cleared=0) {
 		global $table_prefix, $wpdb;
 		// $time_taken = time();
 		$tblname = $table_prefix . 'gm_games';
 		
 		// Checking the attribute value in db
-		$row = $this->getUserGameLevel($user_id, $level_id);
+		// $row = $this->getUserGameLevel($user_id, $level_id);
+		$row = $this->getLevelInfo( $team_id, $level_id );
 
 		if ( is_array($row) && count($row) > 0 ) {
 	    	$sql = "UPDATE $tblname SET team_id=$team_id, game_id=$game_id, level_id=$level_id, user_id=$user_id, time_taken='$time_taken', is_cleared=$is_cleared WHERE level_id=$level_id AND user_id=$user_id AND team_id=$team_id";
 		} 
-		else {
-			$sql = "INSERT INTO $tblname (team_id, game_id, level_id, user_id, is_cleared, time_taken) VALUES ($team_id, $game_id, $level_id, $user_id, $is_cleared, '$time_taken')";
+		else {			
+			/**
+			* Generating the query to insert game with all its levels
+			**/
+			$vals = "";
+			$otherLevels = $this->getOtherLevels($game_id);
+			if ( is_array($otherLevels) && count($otherLevels) > 0 ) {
+				$counter = 0;
+				foreach ($otherLevels as $lId => $otherLevel) {
+					// Appending the commas
+					if ( $counter !== 0 )
+						$vals .= ",";
+
+					if ( $lId == $level_id ) {
+						$vals .= "($team_id, $game_id, $lId, $user_id, $is_cleared, '$time_taken')";
+					} else {
+						$vals .= "($team_id, $game_id, $lId, $user_id, 0, 0)";
+					}									
+					$counter++;
+				}
+			}
+
+			$sql = "INSERT INTO $tblname (team_id, game_id, level_id, user_id, is_cleared, time_taken) VALUES ".$vals;
 		}
+
 		return $wpdb->query($sql);
 	}
 
@@ -555,8 +602,9 @@ class Play_It_Game_Public {
 			/**
 			* #7: Checking if current user has already cleared the level or not
 			**/
-			$isCurrentLevelCleared = false;
-			$userLevelInfo = $this->getUserGameLevel($currentUserId, $post->ID);
+			$isCurrentLevelCleared = false;			
+			// $userLevelInfo = $this->getUserGameLevel($currentUserId, $post->ID);
+			$userLevelInfo = $this->getLevelInfo( $currentTeamId, $post->ID );
 			if ( is_array($userLevelInfo) && count($userLevelInfo) > 0 ) {
 				// Level Cleared
 				if (isset($userLevelInfo['is_cleared']) && $userLevelInfo['is_cleared'] == 1 ) {
@@ -569,7 +617,7 @@ class Play_It_Game_Public {
 		* #7: Finally rendering the form/next level message
 		**/
 		if ($isCurrentLevelCleared) {
-			return '<div class="timer"></div><div>You already cleared this level <a href="'.$nextLevel.'">click here</a> to go next level</div>'.$post->ID;
+			return '<div class="timer"></div><div>This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>'.$post->ID;
 		}
 		else {
 			return '<div class="timer"></div><form method="post" action="">
@@ -581,6 +629,8 @@ class Play_It_Game_Public {
 	}
 
 	/**
+	* Checking if $pageId has parent or not if it has parent then getting its siblings else returning all child pages
+	* 
 	* $id can be gameid or level id
 	**/
 	public function getOtherLevels( $pageId ) {
