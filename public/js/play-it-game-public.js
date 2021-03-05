@@ -1,9 +1,43 @@
+function setCookie(name, value, daysToLive) {
+    // Encode value in order to escape semicolons, commas, and whitespace
+    var cookie = name + "=" + encodeURIComponent(value);
+    
+    if(typeof daysToLive === "number") {
+        /* Sets the max-age attribute so that the cookie expires
+        after the specified number of days */
+        cookie += "; max-age=" + (daysToLive*24*60*60);
+        
+        document.cookie = cookie;
+    }
+}
+
+function getCookie(name) {
+    // Split cookie string and get all individual name=value pairs in an array
+    var cookieArr = document.cookie.split(";");
+    
+    // Loop through the array elements
+    for(var i = 0; i < cookieArr.length; i++) {
+        var cookiePair = cookieArr[i].split("=");
+        
+        /* Removing whitespace at the beginning of the cookie name
+        and compare it with the given string */
+        if(name == cookiePair[0].trim()) {
+            // Decode the cookie value and return
+            return decodeURIComponent(cookiePair[1]);
+        }
+    }
+    
+    // Return null if not found
+    return null;
+}
+
 function count() {
 	let selector = jQuery(".timer")
 	let secondsP = jQuery("[name='_time_taken']").val()
 	secondsP++
 
-	var time_shown = selector.text();
+	// var time_shown = selector.text();
+	var time_shown = getCookie("_timepassed")
 	if (!time_shown) {
 		time_shown = "0:0:0";
 	}
@@ -27,6 +61,8 @@ function count() {
 		hour=1;
 	}
 	var html = `<div class="timerwrapper"><span class="h">${hour}</span><span class="seprator">:</span><span class="m">${plz(mins)}</span><span class="seprator">:</span><span class="s">${plz(secs)}</span></div>`
+	setCookie("_timepassed", `${hour}:${plz(mins)}:${plz(secs)}`, 7);
+
 	// Inserting the time duration in hidden field also
 	jQuery("[name='_time_taken']").val( secondsP )
 

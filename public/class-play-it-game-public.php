@@ -125,18 +125,19 @@ class Play_It_Game_Public {
 		));		
 
 		if( !is_user_logged_in() ) {
-			/**
-			* #2: Show login/signup form if user is not loged-in
-			* https://developer.wordpress.org/reference/functions/wp_login_form/
-			**/
-			$loginMessage = '<h2><center>Please login to play this game</center></h2>';
-			$loginMessage .= wp_login_form(array(
-				'echo' => false,
-				// 'redirect' => home_url( $wp->request )
-				// 'redirect' => home_url( 'all-games' )
-			));
-			$loginMessage .= '<a href="'.home_url("/wp-login.php?action=register").'">Sign Up</a>';
-			return $loginMessage;
+			// /**
+			// * #2: Show login/signup form if user is not loged-in
+			// * https://developer.wordpress.org/reference/functions/wp_login_form/
+			// **/
+			// $loginMessage = '<h2><center>Please login to play this game</center></h2>';
+			// $loginMessage .= wp_login_form(array(
+			// 	'echo' => false,
+			// 	// 'redirect' => home_url( $wp->request )
+			// 	// 'redirect' => home_url( 'all-games' )
+			// ));
+			// $loginMessage .= '<a href="'.home_url("/wp-login.php?action=register").'">Sign Up</a>';
+			// return $loginMessage;
+			return '<h2><center>Please login to play this game</center></h2>';
 		}
 		else {			
 			/**
@@ -589,6 +590,7 @@ class Play_It_Game_Public {
 						$gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, $timeTaken, 1);
 
 						if ($gameLevelRes) {
+							setcookie("_timepassed", time() - 3600);
 							wp_redirect($nextLevel);
 							exit;
 						}

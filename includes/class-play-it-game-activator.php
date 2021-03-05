@@ -54,10 +54,10 @@ class Play_It_Game_Activator {
 	    if($wpdb->get_var( "show tables like '$wp_track_attr_table'" ) != $wp_track_attr_table) {
 	        $sql = "CREATE TABLE `". $wp_track_attr_table . "` ( ";
 	        $sql .= "  `id`  int(11) NOT NULL auto_increment, ";
-	        $sql .= "  `team_id` int(128) NOT NULL, ";
 	        $sql .= "  `game_id` int(128) NOT NULL, ";
-	        $sql .= "  `user_id` int(128) NOT NULL, ";
 	        $sql .= "  `level_id` int(128) NOT NULL, ";
+	        $sql .= "  `team_id` int(128) NOT NULL, ";
+	        $sql .= "  `user_id` int(128) NOT NULL, ";
 	        $sql .= "  `time_taken` int(128) NOT NULL, ";
 	        $sql .= "  `is_cleared` BOOLEAN NOT NULL, ";
 	        $sql .= "  PRIMARY KEY (`id`) "; 

@@ -105,7 +105,35 @@ class Play_It_Game_Admin {
 		if ( in_array( 'subscriber', (array) $user->roles ) ) {
 			return home_url( 'all-games' );
 		}
+		else {
+			return site_url();
+		}
+	}
 
-		// home_url( 'all-games' )
+	public function init_action_cb() {
+		$args = array(
+            'type' => 'string', 
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => NULL,
+        );
+    	register_setting( 'play_it_game_settings', 'all_games_page', $args ); 
+    	register_setting( 'play_it_game_settings', 'after_login_redirect', $args ); 
+	}
+
+	/**
+	* This function is rendering the settings page of plugin
+	**/
+	public function ph_infinite_add_menu() {
+		$menu_slug 	= 'playit_games_settings';
+		$menu_name 	= 'Play-It Settings';
+		$menu_main 	= 'Play-It';
+
+		add_menu_page($menu_name, $menu_main, 'manage_options', $menu_slug, '',plugin_dir_url(__FILE__).'assets/img/logo-wp.png', 57);	
+
+		add_submenu_page( $menu_slug, $menu_name, $menu_main, 'manage_options', $menu_slug, array($this, 'infi_settings'));
+	}
+
+	public function infi_settings() {
+		include "partials/play-it-game-admin-display.php";
 	}
 }

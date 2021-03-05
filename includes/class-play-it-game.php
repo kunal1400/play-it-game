@@ -157,6 +157,9 @@ class Play_It_Game {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'login_redirect', $plugin_admin, 'login_redirect_cb' );
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'init_action_cb' );
+		// Hook for admin settings
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'ph_infinite_add_menu' );
 
 	}
 
