@@ -52,6 +52,8 @@ class Play_It_Game_Public {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+		global $post;		
+
 	}
 
 	/**
@@ -83,11 +85,21 @@ class Play_It_Game_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
+		global $post;		
 		
 		wp_enqueue_script('jquery-validate-min', plugin_dir_url( __FILE__ ) . 'js/jquery.validate.min.js', 
 			array( 'jquery' ), $this->version, false );
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/play-it-game-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name.'play_it_js', plugin_dir_url( __FILE__ ) . 'js/play-it-game-public.js', array( 'jquery' ), $this->version, false );
+
+		if ( !empty($_GET['currentTeamId']) && $post && $post->ID ) {
+			wp_localize_script( $this->plugin_name.'play_it_js', 'current_env', array(
+				"id" => get_current_user_id().'_'.$post->ID,
+				"current_user_id" => get_current_user_id(),
+				"current_team_id" => $_GET['currentTeamId'],
+				"current_level_id" => $post->ID
+			) );
+		}
 
 	}
 
@@ -158,7 +170,7 @@ class Play_It_Game_Public {
 			/**
 			* #4: Listing all teams of the current game
 			**/
-			$teams = $this->getAllTeams( $post->ID );			
+			$teams = $this->getAllTeams( $post->ID );
 			if ( is_array($teams) && count($teams) > 0 ) {
 				$html .= "<h3>Choose Team:</h3>";
 				$html .= "<table id='teams'>
@@ -166,6 +178,7 @@ class Play_It_Game_Public {
 						<th width='100'>S.No</th>
 						<th>Team Name</th>
 						<th width='100'>Time Taken (In Sec)</th>
+						<th width='20'>Levels</th>
 						<th>Member Emails</th>
 						<th>Action</th>
 					</thead>";
@@ -193,6 +206,7 @@ class Play_It_Game_Public {
 						<td>'.($i+1).'</td>
 						<td>'.$team['team_name'].'</td>
 						<td>'.$team['total_time_taken'].'</td>
+						<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>
 						<td>'.$team['members_email'].'</td>
 						<td>'.$buttons.'</td>
 					</tr>';
@@ -408,7 +422,13 @@ class Play_It_Game_Public {
 		global $wpdb;
 		$gamesTable = $wpdb->prefix . 'gm_games';
 		$teamsTable = $wpdb->prefix . 'gm_teams';		
-		$sql = "SELECT *, (SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as total_time_taken, (SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels, (SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id) as total_levels FROM $teamsTable as t WHERE game_id = $gamesId ORDER BY total_time_taken ASC, cleared_levels DESC";
+		$postsTable = $wpdb->prefix . 'posts';		
+		$sql = "SELECT *, 
+		(SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as total_time_taken, 
+		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels, 
+		(SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish') as total_levels, 
+		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id) as total_levels_old
+		FROM $teamsTable as t WHERE game_id = $gamesId ORDER BY cleared_levels DESC, total_time_taken ASC";
 		// $sql = "SELECT * FROM $tblname WHERE game_id = $gamesId";
 		return $wpdb->get_results($sql, ARRAY_A);
 	}
@@ -459,10 +479,10 @@ class Play_It_Game_Public {
 		return $teamIds;
 	}
 
-	public function getUserGameLevel( $userId, $levelId ) {
+	public function getUserGameLevel( $userId, $teamId, $levelId ) {
 		global $wpdb;
 		$tblname = $wpdb->prefix . 'gm_games';
-		$sql = "SELECT * FROM $tblname WHERE level_id=$levelId AND user_id=$userId";
+		$sql = "SELECT * FROM $tblname WHERE level_id=$levelId AND user_id=$userId AND team_id=$teamId";
 		return $wpdb->get_row($sql, ARRAY_A);
 	}
 
@@ -557,6 +577,8 @@ class Play_It_Game_Public {
 		}
 
 		// // #3: Getting All Levels
+		$currentUserLevelInfo = $this->getUserGameLevel($currentUserId, $currentTeamId, $post->ID);
+
 		// $allLevels = $this->getOtherLevels( $post->ID );
 
 		// // #4: Getting Next Level Link
@@ -571,7 +593,7 @@ class Play_It_Game_Public {
 		* #5: Process to save data in db after user answer a level, here we are also 
 		* checking if user is on page and so that it will not affect other pages.
 		**/
-		if ( 'page' === get_post_type() AND is_singular() ) {		
+		if ( 'page' === get_post_type() AND is_singular() ) {
 
 			/**
 			* #6: If current is page is game level then only perform db operations
@@ -590,7 +612,7 @@ class Play_It_Game_Public {
 						$gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, $timeTaken, 1);
 
 						if ($gameLevelRes) {
-							setcookie("_timepassed", time() - 3600);
+							// setcookie("_timepassed", time() - 3600);
 							wp_redirect($nextLevel);
 							exit;
 						}
@@ -619,7 +641,7 @@ class Play_It_Game_Public {
 		* #7: Finally rendering the form/next level message
 		**/
 		if ($isCurrentLevelCleared) {
-			return '<div class="timer"></div><div>This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>'.$post->ID;
+			return '<div>This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>'.$post->ID;
 		}
 		else {
 			return '<div class="timer"></div><form method="post" action="">
@@ -703,5 +725,25 @@ class Play_It_Game_Public {
 		else {
 			return $nextLevel;
 		}
+	}
+
+	public function init_template_redirect() {
+		// global $post;
+
+		// $currentUserLevelInfo = $this->getUserGameLevel( get_current_user_id(), $_GET['currentTeamId'], $post->ID);
+
+		// if ( is_page() ) {
+		// 	// $initialCookieValue = null;
+		
+		// 	// if ( is_null($currentUserLevelInfo) ) {
+		// 	// 	// $initialCookieValue = htmlentities("00:00:00");		
+		// 	// 	setcookie("_timepassed", htmlentities("00:00:00"), strtotime( '+7 days' ));
+		// 	// } 
+		// 	// else {
+		// 	// 	// $initialCookieValue = htmlentities($currentUserLevelInfo['user_spent_time']);		
+		// 	// 	setcookie("_timepassed", htmlentities($currentUserLevelInfo['user_spent_time']), strtotime( '+7 days' ));
+		// 	// }
+		// }
+		
 	}
 }

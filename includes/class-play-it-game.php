@@ -178,6 +178,7 @@ class Play_It_Game {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 		$this->loader->add_action( 'wp', $plugin_public, 'page_load_actions' );
 		$this->loader->add_action( 'init', $plugin_public, 'init_actions' );
+		$this->loader->add_action( 'template_redirect', $plugin_public, 'init_template_redirect' );
 
 		$this->loader->add_shortcode( 'game_home_page', $plugin_public, 'game_home_page_cb' );
 		$this->loader->add_shortcode( 'all_games', $plugin_public, 'all_games_cb' );

@@ -5,7 +5,7 @@ function setCookie(name, value, daysToLive) {
     if(typeof daysToLive === "number") {
         /* Sets the max-age attribute so that the cookie expires
         after the specified number of days */
-        cookie += "; max-age=" + (daysToLive*24*60*60);
+        cookie += "; max-age=" + (daysToLive*24*60*60)+"; path=/";
         
         document.cookie = cookie;
     }
@@ -33,40 +33,42 @@ function getCookie(name) {
 
 function count() {
 	let selector = jQuery(".timer")
-	let secondsP = jQuery("[name='_time_taken']").val()
-	secondsP++
+	if (selector.length > 0 && current_env ) {
+		let cookieName = `_current_env_id_${current_env.id}`
+		let secondsP = jQuery("[name='_time_taken']").val()
+		secondsP++
 
-	// var time_shown = selector.text();
-	var time_shown = getCookie("_timepassed")
-	if (!time_shown) {
-		time_shown = "0:0:0";
+		// var time_shown = selector.text();
+		let time_shown = getCookie( cookieName )
+		if (!time_shown) {
+			time_shown = "00:00:00";
+		}
+
+	    let time_chunks = time_shown.split(":");
+	    let hour = Number(time_chunks[0]);
+	    let mins = Number(time_chunks[1]);
+	    let secs = Number(time_chunks[2]);
+	    secs++;
+		if (secs==60){
+			secs = 0;
+			mins=mins + 1;
+		} 
+		if (mins==60){
+			mins=0;
+			hour=hour + 1;
+		}
+		if (hour==13){
+			hour=1;
+		}
+		console.log( secs, `${plz(hour)}:${plz(mins)}:${plz(secs)}`)
+		let html = `<div class="timerwrapper"><span class="h">${plz(hour)}</span><span class="seprator">:</span><span class="m">${plz(mins)}</span><span class="seprator">:</span><span class="s">${plz(secs)}</span></div>`
+		setCookie( cookieName, `${plz(hour)}:${plz(mins)}:${plz(secs)}`, 7);
+
+		// Inserting the time duration in hidden field also
+		jQuery("[name='_time_taken']").val( secondsP )
+
+	    selector.html(html);
 	}
-
-    var hour, mins, secs;
-    var time_chunks = time_shown.split(":");
-
-    hour=Number(time_chunks[0]);
-    mins=Number(time_chunks[1]);
-    secs=Number(time_chunks[2]);
-    secs++;
-	if (secs==60){
-		secs = 0;
-		mins=mins + 1;
-	} 
-	if (mins==60){
-		mins=0;
-		hour=hour + 1;
-	}
-	if (hour==13){
-		hour=1;
-	}
-	var html = `<div class="timerwrapper"><span class="h">${hour}</span><span class="seprator">:</span><span class="m">${plz(mins)}</span><span class="seprator">:</span><span class="s">${plz(secs)}</span></div>`
-	setCookie("_timepassed", `${hour}:${plz(mins)}:${plz(secs)}`, 7);
-
-	// Inserting the time duration in hidden field also
-	jQuery("[name='_time_taken']").val( secondsP )
-
-    selector.html(html);
 }
  
 function plz(digit) { 
