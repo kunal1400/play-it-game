@@ -136,4 +136,5 @@ class Play_It_Game_Admin {
 	public function infi_settings() {
 		include "partials/play-it-game-admin-display.php";
 	}
+
 }

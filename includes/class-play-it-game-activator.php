@@ -60,6 +60,7 @@ class Play_It_Game_Activator {
 	        $sql .= "  `user_id` int(128) NOT NULL, ";
 	        $sql .= "  `time_taken` int(128) NOT NULL, ";
 	        $sql .= "  `is_cleared` BOOLEAN NOT NULL, ";
+	        $sql .= "  `clue_seconds` int(11) DEFAULT NULL, ";
 	        $sql .= "  PRIMARY KEY (`id`) "; 
 	        $sql .= "); ";
 

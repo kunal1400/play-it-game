@@ -79,6 +79,52 @@ function plz(digit) {
     return zpad;
 }
 
+function showclue(e) {
+	let clickedElement = jQuery(e).find('.clue')
+	let secondsToAdd = jQuery(e).attr("data-secondsToAdd")
+	jQuery(e).toggleClass("showclue")
+
+	console.log(current_env, "+current_env+")
+
+	// if ( clickedElement.hasClass("showclue") ) {
+	// 	clickedElement.removeClass("showclue")
+	// } else {
+	// 	clickedElement.addClass("showclue")		
+	// }
+
+	jQuery.ajax({
+		url: current_env.ajax_url,
+		method: 'POST',
+		data: {
+			action: "add_clue",
+			secondsToAdd,
+			current_level_id: current_env.current_level_id,
+			current_team_id: current_env.current_team_id,
+			current_user_id: current_env.current_user_id
+		}
+	})
+	.done(function( response ) {
+		console.log( response )
+	})
+	// fetch(current_env.ajax_url, {
+	// 	method: 'POST',
+	// 	headers: {
+	// 		'Content-Type': 'application/json'
+	// 	},
+	// 	body: JSON.stringify({
+	// 		secondsToAdd,
+	// 		action: "add_clue",
+	// 		current_level_id: current_env.current_level_id,
+	// 		current_team_id: current_env.current_team_id,
+	// 		current_user_id: current_env.current_user_id
+	// 	})
+	// })
+	// .then(response => response.json())
+	// .then((data) => {
+	// 	console.log(data, "dataaa")
+	// })
+}
+
 jQuery(document).ready(function(){
   	jQuery.validator.addMethod("multiemail", function (value, element) {
         if (this.optional(element)) {

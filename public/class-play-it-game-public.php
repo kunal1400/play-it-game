@@ -97,7 +97,8 @@ class Play_It_Game_Public {
 				"id" => get_current_user_id().'_'.$post->ID,
 				"current_user_id" => get_current_user_id(),
 				"current_team_id" => $_GET['currentTeamId'],
-				"current_level_id" => $post->ID
+				"current_level_id" => $post->ID,
+				"ajax_url" => admin_url('admin-ajax.php')
 			) );
 		}
 
@@ -746,4 +747,33 @@ class Play_It_Game_Public {
 		// }
 		
 	}
+
+	public function show_clue_cb($atts ) {
+		$attributes = shortcode_atts( array(
+			'seconds_to_add' => 0
+		), $atts );
+
+		$secondsToAdd = $attributes['seconds_to_add'];
+		if ($secondsToAdd && $secondsToAdd > 0) {
+			return "<div data-secondsToAdd='".$secondsToAdd."' class='cluewrapper' onclick='showclue(this)'>
+				<div class=''>+</div>
+				<div class='clue' style='display:none'>Add $secondsToAdd</div>
+			</div>";
+		}
+		else {
+			return;
+		}
+
+	}
+
+	public function add_clue_cb() {
+		if( isset($_REQUEST['secondsToAdd']) && isset($_REQUEST['current_level_id']) && isset($_REQUEST['current_team_id']) && isset($_REQUEST['current_user_id']) ) {
+			// $gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, $timeTaken, 1);
+		}
+		echo '<pre>';
+		print_r($_REQUEST);
+		echo '</pre>';
+		exit;
+	}
+
 }
