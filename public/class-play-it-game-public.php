@@ -92,12 +92,13 @@ class Play_It_Game_Public {
 
 		wp_enqueue_script( $this->plugin_name.'play_it_js', plugin_dir_url( __FILE__ ) . 'js/play-it-game-public.js', array( 'jquery' ), $this->version, false );
 
-		if ( !empty($_GET['currentTeamId']) && $post && $post->ID ) {
+		if ( !empty($_GET['currentTeamId']) && $post && $post->ID ) {			
 			wp_localize_script( $this->plugin_name.'play_it_js', 'current_env', array(
 				"id" => get_current_user_id().'_'.$post->ID,
 				"current_user_id" => get_current_user_id(),
 				"current_team_id" => $_GET['currentTeamId'],
 				"current_level_id" => $post->ID,
+				"current_game_id" => $post->post_parent,
 				"ajax_url" => admin_url('admin-ajax.php')
 			) );
 		}
@@ -176,9 +177,11 @@ class Play_It_Game_Public {
 				$html .= "<h3>Choose Team:</h3>";
 				$html .= "<table id='teams'>
 					<thead>
-						<th width='100'>S.No</th>
+						<th>S.No</th>
 						<th>Team Name</th>
 						<th width='100'>Time Taken (In Sec)</th>
+						<th width='100'>Clues</th>
+						<th width='100'>Score</th>
 						<th width='20'>Levels</th>
 						<th>Member Emails</th>
 						<th>Action</th>
@@ -207,6 +210,8 @@ class Play_It_Game_Public {
 						<td>'.($i+1).'</td>
 						<td>'.$team['team_name'].'</td>
 						<td>'.$team['total_time_taken'].'</td>
+						<td>'.$team['clue_seconds'].'</td>
+						<td>'.$team['total_score'].'</td>
 						<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>
 						<td>'.$team['members_email'].'</td>
 						<td>'.$buttons.'</td>
@@ -419,6 +424,11 @@ class Play_It_Game_Public {
 		// }
 	}
 
+	/**
+	* Formula for score
+	*
+	* score = (Number Of Levels/(Total Time Taken + Total Clues))*100
+	**/
 	public function getAllTeams( $gamesId ) {
 		global $wpdb;
 		$gamesTable = $wpdb->prefix . 'gm_games';
@@ -426,6 +436,10 @@ class Play_It_Game_Public {
 		$postsTable = $wpdb->prefix . 'posts';		
 		$sql = "SELECT *, 
 		(SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as total_time_taken, 
+		(SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as clue_seconds,
+		(
+			((SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish')/((SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) + (SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1)))*100
+		) as total_score,
 		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels, 
 		(SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish') as total_levels, 
 		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id) as total_levels_old
@@ -750,30 +764,32 @@ class Play_It_Game_Public {
 
 	public function show_clue_cb($atts ) {
 		$attributes = shortcode_atts( array(
-			'seconds_to_add' => 0
+			'seconds_to_add' => 0,
+			'image_url' => null,
+			'text' => ''
 		), $atts );
 
 		$secondsToAdd = $attributes['seconds_to_add'];
 		if ($secondsToAdd && $secondsToAdd > 0) {
-			return "<div data-secondsToAdd='".$secondsToAdd."' class='cluewrapper' onclick='showclue(this)'>
-				<div class=''>+</div>
-				<div class='clue' style='display:none'>Add $secondsToAdd</div>
-			</div>";
+			$str = "<div data-secondsToAdd='".$secondsToAdd."' class='cluewrapper'>";
+				$str .= "<a href='javascript:void(0)' onclick='showclue(this)' class=''>Clue</a>";
+				$str .= "<div class='clue' style='display:none'>";
+					if (!empty($attributes['image_url'])) {
+						$str .= "<div class='imagewrapper'>
+							<img src='".$attributes['image_url']."'/>
+						</div>";
+					}
+					if (!empty($attributes['text'])) {
+						$str .= "<div class='textwrapper'>".$attributes['text']."</div>";
+					}
+				$str .= "</div>";
+			$str .= "</div>";
+			return $str;
 		}
 		else {
 			return;
 		}
 
-	}
-
-	public function add_clue_cb() {
-		if( isset($_REQUEST['secondsToAdd']) && isset($_REQUEST['current_level_id']) && isset($_REQUEST['current_team_id']) && isset($_REQUEST['current_user_id']) ) {
-			// $gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, $timeTaken, 1);
-		}
-		echo '<pre>';
-		print_r($_REQUEST);
-		echo '</pre>';
-		exit;
-	}
+	}	
 
 }

@@ -80,11 +80,8 @@ function plz(digit) {
 }
 
 function showclue(e) {
-	let clickedElement = jQuery(e).find('.clue')
+	let clickedElement = jQuery(e).parent().find('.clue').toggle()
 	let secondsToAdd = jQuery(e).attr("data-secondsToAdd")
-	jQuery(e).toggleClass("showclue")
-
-	console.log(current_env, "+current_env+")
 
 	// if ( clickedElement.hasClass("showclue") ) {
 	// 	clickedElement.removeClass("showclue")
@@ -92,37 +89,24 @@ function showclue(e) {
 	// 	clickedElement.addClass("showclue")		
 	// }
 
-	jQuery.ajax({
-		url: current_env.ajax_url,
-		method: 'POST',
-		data: {
-			action: "add_clue",
-			secondsToAdd,
-			current_level_id: current_env.current_level_id,
-			current_team_id: current_env.current_team_id,
-			current_user_id: current_env.current_user_id
-		}
-	})
-	.done(function( response ) {
-		console.log( response )
-	})
-	// fetch(current_env.ajax_url, {
-	// 	method: 'POST',
-	// 	headers: {
-	// 		'Content-Type': 'application/json'
-	// 	},
-	// 	body: JSON.stringify({
-	// 		secondsToAdd,
-	// 		action: "add_clue",
-	// 		current_level_id: current_env.current_level_id,
-	// 		current_team_id: current_env.current_team_id,
-	// 		current_user_id: current_env.current_user_id
-	// 	})
-	// })
-	// .then(response => response.json())
-	// .then((data) => {
-	// 	console.log(data, "dataaa")
-	// })
+	console.log(current_env, secondsToAdd, "+current_env+secondsToAdd+")
+	if (secondsToAdd && parseInt(secondsToAdd) > 0) {
+		jQuery.ajax({
+			url: current_env.ajax_url,
+			method: 'POST',
+			data: {
+				action: "add_clue",
+				secondsToAdd,
+				current_level_id: current_env.current_level_id,
+				current_team_id: current_env.current_team_id,
+				current_user_id: current_env.current_user_id,
+				current_game_id: current_env.current_game_id
+			}
+		})
+		.done(function( response ) {
+			console.log( response )
+		})
+	}
 }
 
 jQuery(document).ready(function(){

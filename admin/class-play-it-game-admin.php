@@ -137,4 +137,90 @@ class Play_It_Game_Admin {
 		include "partials/play-it-game-admin-display.php";
 	}
 
+	public function getLevelInfo( $teamId, $levelId, $userId ) {
+		global $wpdb;
+		$tblname = $wpdb->prefix . 'gm_games';
+		$sql = "SELECT * FROM $tblname WHERE level_id=$levelId AND team_id=$teamId AND user_id=$userId";
+		return $wpdb->get_row($sql, ARRAY_A);
+	}
+
+	/**
+	* Checking if $pageId has parent or not if it has parent then getting its siblings else returning all child pages
+	* 
+	* $id can be gameid or level id
+	**/
+	public function getOtherLevels( $pageId ) {
+		$levelsWithUrl = array();
+		$levelInfo = get_post( $pageId );
+		
+		// Implies that it is level
+		if ( isset($levelInfo->post_parent) && $levelInfo->post_parent != 0 ) {
+			$gameLevels = get_pages(array(
+				'child_of' => $levelInfo->post_parent
+			));
+		}
+		else {
+			$gameLevels = get_pages(array(
+				'child_of' => $pageId
+			));			
+		}
+
+		foreach ($gameLevels as $id => $level) {
+			$levelsWithUrl[$level->ID] = $level->guid;				
+		}
+
+		return $levelsWithUrl;
+	}
+
+	public function manageGameLevel($team_id, $game_id, $user_id, $level_id, $clue_seconds=0) {
+		global $table_prefix, $wpdb;
+		// $time_taken = time();
+		$tblname = $table_prefix . 'gm_games';
+		
+		// Checking the attribute value in db
+		$row = $this->getLevelInfo( $team_id, $level_id, $user_id );
+
+		if ( is_array($row) && count($row) > 0 ) {
+	    	$sql = "UPDATE $tblname SET clue_seconds=$clue_seconds WHERE level_id=$level_id AND user_id=$user_id AND team_id=$team_id";
+		} 
+		else {
+			/**
+			* Generating the query to insert game with all its levels
+			**/
+			$vals = "";
+			$otherLevels = $this->getOtherLevels($game_id);
+			if ( is_array($otherLevels) && count($otherLevels) > 0 ) {
+				$counter = 0;
+				foreach ($otherLevels as $lId => $otherLevel) {
+					// Appending the commas
+					if ( $counter !== 0 )
+						$vals .= ",";
+
+					if ( $lId == $level_id ) {
+						$vals .= "($team_id, $game_id, $user_id, $lId, 0, 0, $clue_seconds)";
+					} else {
+						$vals .= "($team_id, $game_id, $user_id, $lId, 0, 0, 0)";
+					}									
+					$counter++;
+				}
+			}
+
+			$sql = "INSERT INTO $tblname (team_id, game_id, user_id, level_id, time_taken, is_cleared, clue_seconds) VALUES ".$vals;
+		}
+		
+		return $wpdb->query($sql);
+	}
+
+	public function add_clue_cb() {
+		if( isset($_REQUEST['secondsToAdd']) && isset($_REQUEST['current_level_id']) && isset($_REQUEST['current_team_id']) && isset($_REQUEST['current_user_id']) && isset($_REQUEST['current_game_id']) ) {
+
+			$gameLevelRes = $this->manageGameLevel($_REQUEST['current_team_id'], $_REQUEST['current_game_id'], $_REQUEST['current_user_id'], $_REQUEST['current_level_id'], $_REQUEST['secondsToAdd']
+			);
+
+			echo '<pre>';
+			print_r($gameLevelRes);
+			echo '</pre>';
+		}		
+		exit;
+	}
 }
