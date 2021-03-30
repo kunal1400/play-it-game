@@ -136,7 +136,17 @@ class Play_It_Game_Public {
 		**/
 		$gameLevels = get_pages(array(
 			'child_of' => $post->ID
-		));		
+		));
+
+		/**
+		* #2: Getting the multipler
+		**/
+		$score_multipler = get_post_meta( $post->ID, 'score_multipler', true);		
+		if (!$score_multipler) {
+			$scoreMultipler = 10;
+		} else {
+			$scoreMultipler = (int)$score_multipler;			
+		}
 
 		if( !is_user_logged_in() ) {
 			// /**
@@ -153,9 +163,9 @@ class Play_It_Game_Public {
 			// return $loginMessage;
 			return '<h2><center>Please login to play this game</center></h2>';
 		}
-		else {			
+		else {
 			/**
-			* #2: Show all games link
+			* #3: Show all games link
 			**/
 			$html = "";			
 			$html .= "<div style='text-align:right'><a style='color: #48bb48;' href='".home_url( 'all-games' )."'>View All My Games</a></div>";
@@ -165,12 +175,12 @@ class Play_It_Game_Public {
 			}
 
 			/**
-			* #3: Getting all the teams of the current user
+			* #4: Getting all the teams of the current user
 			**/
 			$userTeamIds = $this->getUserTeamId( get_current_user_id() );
 
 			/**
-			* #4: Listing all teams of the current game
+			* #5: Listing all teams of the current game
 			**/
 			$teams = $this->getAllTeams( $post->ID );
 			if ( is_array($teams) && count($teams) > 0 ) {
@@ -188,7 +198,7 @@ class Play_It_Game_Public {
 					</thead>";
 				foreach ($teams as $i => $team) {
 					/**
-					* #5: Showing team info in table row and showing the buttons
+					* #6: Showing team info in table row and showing the buttons
 					**/
 					$buttons = "";
 					// User is not associated to any team
@@ -211,7 +221,7 @@ class Play_It_Game_Public {
 						<td>'.$team['team_name'].'</td>
 						<td>'.$team['total_time_taken'].'</td>
 						<td>'.$team['clue_seconds'].'</td>
-						<td>'.$team['total_score'].'</td>
+						<td>'.($team['total_score']*$scoreMultipler).'</td>
 						<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>
 						<td>'.$team['members_email'].'</td>
 						<td>'.$buttons.'</td>
@@ -289,7 +299,7 @@ class Play_It_Game_Public {
 			</div>';
 
 			return $html;
-		}		
+		}
 	}
 
 	public function init_actions() {
@@ -427,6 +437,8 @@ class Play_It_Game_Public {
 	/**
 	* Formula for score
 	*
+	* maxscore = 5/(5+0)
+	*
 	* score = (Number Of Levels/(Total Time Taken + Total Clues))*100
 	**/
 	public function getAllTeams( $gamesId ) {
@@ -438,7 +450,7 @@ class Play_It_Game_Public {
 		(SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as total_time_taken, 
 		(SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as clue_seconds,
 		(
-			((SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish')/((SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) + (SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1)))*100
+			((SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish')/((SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) + (SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1)))
 		) as total_score,
 		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels, 
 		(SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish') as total_levels, 
@@ -771,8 +783,8 @@ class Play_It_Game_Public {
 
 		$secondsToAdd = $attributes['seconds_to_add'];
 		if ($secondsToAdd && $secondsToAdd > 0) {
-			$str = "<div data-secondsToAdd='".$secondsToAdd."' class='cluewrapper'>";
-				$str .= "<a href='javascript:void(0)' onclick='showclue(this)' class=''>Clue</a>";
+			$str = "<div class='cluewrapper'>";
+				$str .= "<a data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>Clue</a>";
 				$str .= "<div class='clue' style='display:none'>";
 					if (!empty($attributes['image_url'])) {
 						$str .= "<div class='imagewrapper'>

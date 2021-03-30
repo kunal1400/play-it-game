@@ -15,6 +15,34 @@
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div class="wrap">
+	<h1>How to Setup a Game</h1>
+	<ol>
+		<li>
+			<p><b>How to create All Games Page?</b>
+			<ol>
+				<li>Create a page with slug "all-games"</li>
+				<li>Add this shortcode <i>[all_games]</i> to All Games page</li>
+			</ol>
+		</p>
+		<li><p><b>How to create a Game Home Page?</b></p>
+			<ol>
+				<li><p>Add a Shortcode <i>[game_home_page]</i> in editor. This will promt users to loged in and after login it will show all teams associated with this game, create team form and start playing button.</p></li>
+				<li><p>Create a custom fields:</p>
+					<ol>
+						<li><p><i>is_game_home_page</i> and set it to <i>true</i></p></li>
+						<li><p><i>score_multipler</i> and set any value, if no value is set then 10 will be default</p></li>
+					</ol>
+				</li>
+			</ol>
+		</li>
+		<li><p><b>How to create Game Levels?</b></p>
+			<ol>
+				<li><p>Shortcode for next step: <i>[next_step_form answer=""]</i></p></li>
+				<li><p>Shortcode for clue: <i>[show_clue seconds_to_add="50" image_url="" text=""]</i></p></li>
+			</ol>
+		</li>
+	</ol>
+	<hr/>
 	<h1>Your Plugin Page Title</h1>
 	<form method="post" action="options.php">
 		<?php settings_fields( 'play_it_game_settings' ); ?>
