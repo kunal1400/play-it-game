@@ -33,6 +33,8 @@ class Play_It_Game_Activator {
 		global $table_prefix, $wpdb;
 	    $wp_track_table = $table_prefix . "gm_teams";
 
+		update_option('default_game_images', 'https://via.placeholder.com/360');
+
 	    #Check to see if the table exists already, if not, then create it
 	    if($wpdb->get_var( "show tables like '$wp_track_table'" ) != $wp_track_table) {
 	        $sql = "CREATE TABLE `". $wp_track_table . "` ( ";

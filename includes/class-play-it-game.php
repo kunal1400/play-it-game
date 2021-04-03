@@ -182,11 +182,13 @@ class Play_It_Game {
 		$this->loader->add_action( 'init', $plugin_public, 'init_actions' );
 		$this->loader->add_action( 'template_redirect', $plugin_public, 'init_template_redirect' );		
 
-		$this->loader->add_shortcode( 'game_home_page', $plugin_public, 'game_home_page_cb' );
 		$this->loader->add_shortcode( 'all_games', $plugin_public, 'all_games_cb' );
-		$this->loader->add_shortcode( 'list_games', $plugin_public, 'list_user_games_cb' );
+		// $this->loader->add_shortcode( 'list_games', $plugin_public, 'list_user_games_cb' );
+		$this->loader->add_shortcode( 'team_score_position', $plugin_public, 'game_home_page_cb' );
+		$this->loader->add_shortcode( 'create_team', $plugin_public, 'create_team_cb' );
 		$this->loader->add_shortcode( 'next_step_form', $plugin_public, 'next_step_form_cb' );
 		$this->loader->add_shortcode( 'show_clue', $plugin_public, 'show_clue_cb' );
+		$this->loader->add_shortcode( 'show_timer', $plugin_public, 'show_timer_cb' );
 
 	}
 

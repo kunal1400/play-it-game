@@ -61,13 +61,16 @@ function count() {
 			hour=1;
 		}
 		console.log( secs, `${plz(hour)}:${plz(mins)}:${plz(secs)}`)
-		let html = `<div class="timerwrapper"><span class="h">${plz(hour)}</span><span class="seprator">:</span><span class="m">${plz(mins)}</span><span class="seprator">:</span><span class="s">${plz(secs)}</span></div>`
+		
+	    selector.find(".h>h1").html(plz(hour));
+	    selector.find(".m>h1").html(plz(mins));
+	    selector.find(".s>h1").html(plz(secs));
+		
 		setCookie( cookieName, `${plz(hour)}:${plz(mins)}:${plz(secs)}`, 7);
 
 		// Inserting the time duration in hidden field also
 		jQuery("[name='_time_taken']").val( secondsP )
 
-	    selector.html(html);
 	}
 }
  

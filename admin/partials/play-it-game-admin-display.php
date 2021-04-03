@@ -17,16 +17,17 @@
 <div class="wrap">
 	<h1>How to Setup a Game</h1>
 	<ol>
+		<li>For social login we use Elementor Add On, so setup your own Google/Facebook credentials</li>
 		<li>
 			<p><b>How to create All Games Page?</b>
 			<ol>
-				<li>Create a page with slug "all-games"</li>
 				<li>Add this shortcode <i>[all_games]</i> to All Games page</li>
 			</ol>
 		</p>
 		<li><p><b>How to create a Game Home Page?</b></p>
 			<ol>
-				<li><p>Add a Shortcode <i>[game_home_page]</i> in editor. This will promt users to loged in and after login it will show all teams associated with this game, create team form and start playing button.</p></li>
+				<li><p>Add a Shortcode <i>[create_team form_heading="Create TEAM:"]</i> in editor. This will show the create team form.</p></li>
+				<li><p>Add a Shortcode <i>[team_score_position]</i> in editor. This will promt users to loged in and after login it will show all teams associated with this game, create team form and start playing button.</p></li>
 				<li><p>Create a custom fields:</p>
 					<ol>
 						<li><p><i>is_game_home_page</i> and set it to <i>true</i></p></li>
@@ -37,6 +38,7 @@
 		</li>
 		<li><p><b>How to create Game Levels?</b></p>
 			<ol>
+				<li><p>Shortcode for timer: <i>[show_timer hours_label="HOURS" minutes_label="MINUTES" seconds_label="SECONDS" hours_background_color="#cccccc9e" minutes_background_color="#cccccc9e" seconds_background_color="#cccccc9e" hours_font_color="#FFF" minutes_font_color="#FFF" seconds_font_color="#FFF"]</i></p></li>
 				<li><p>Shortcode for next step: <i>[next_step_form answer=""]</i></p></li>
 				<li><p>Shortcode for clue: <i>[show_clue seconds_to_add="50" image_url="" text=""]</i></p></li>
 			</ol>
@@ -88,6 +90,12 @@
 						}
 		        		echo '</select>';
 					?>
+	        	</td>
+	        </tr>
+	        <tr valign="top">
+	        	<th scope="row">Default Games Image</th>
+	        	<td>
+	        		<input type="text" name="default_game_images" value="<?php echo get_option('default_game_images') ?>">	        		
 	        	</td>
 	        </tr>	        
 	    </table>

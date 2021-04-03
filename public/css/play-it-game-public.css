@@ -37,7 +37,6 @@ input[type=submit]:hover {
   padding: 20px;
 }
 #teams {
-  font-family: Arial, Helvetica, sans-serif;
   border-collapse: collapse;
   width: 100%;
 }
@@ -75,9 +74,15 @@ input[type=submit]:hover {
 .button-black {background-color: #555555;} /* Black */
 
 .timerwrapper {
-    max-width: 100%;
-    margin-right: auto;
-    margin-left: auto;
-    justify-content: center;
-    display: flex;
+  max-width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  justify-content: center;
+  display: flex;
+}
+.timerwrapper .h,
+.timerwrapper .m,
+.timerwrapper .s {
+  padding: 20px;
+  text-align: center;
 }

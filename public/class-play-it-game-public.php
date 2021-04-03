@@ -63,19 +63,9 @@ class Play_It_Game_Public {
 	 */
 	public function enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Play_It_Game_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Play_It_Game_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+		wp_enqueue_style( $this->plugin_name."public.css", plugin_dir_url( __FILE__ ) . 'css/play-it-game-public.css', array(), $this->version, 'all' );
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/play-it-game-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name."bootstrap.grid", plugin_dir_url( __FILE__ ) . 'css/bootstrap.grid.css', array(), $this->version, 'all' );
 
 	}
 
@@ -167,8 +157,12 @@ class Play_It_Game_Public {
 			/**
 			* #3: Show all games link
 			**/
-			$html = "";			
-			$html .= "<div style='text-align:right'><a style='color: #48bb48;' href='".home_url( 'all-games' )."'>View All My Games</a></div>";
+			$html = "";
+			$all_games_page_id = get_option('all_games_page');
+		    if ($all_games_page_id ) {
+				$allGamePage = get_post($all_games_page_id);
+				$html .= "<div style='text-align:right'><a style='color: #48bb48;' href='".$allGamePage->guid."'>View All Games</a></div>";
+		    }
 
 			if ( !empty($_GET['already_emails']) ) {
 				$html .= "<div style='color: #f52f2f;font-style: italic;'>".$_GET['already_emails']." already associated with other teams</div>";
@@ -231,75 +225,36 @@ class Play_It_Game_Public {
 			}
 			else {
 				$html .= "<p><i>No teams for this game</i></p>";
-			}		
-			
-			/**
-			* This is very important line of code which is giving the number of levels cleared for the current game by current user. It is not required now so commenting it
-			**/
-			/*$html .= "<table>";
-			$html .= "<tr>
-				<th width='100'>Level Id</th>
-				<th>Level Name</th>
-				<th>Time Taken</th>
-				<th>Is Cleared</th>
-			</tr>";			
-			$currentUserId = get_current_user_id();
-			foreach ($gameLevels as $i => $levelData) {
-				$levelInfo = $this->getUserGameLevel( $currentUserId, $levelData->ID );
-				if ( is_array($levelInfo) && count($levelInfo) > 0 ) {
-					if ( isset($levelInfo['is_cleared']) ) {
-						$html .= "<tr>
-							<td>".$levelData->ID."</td>
-							<td><a href='".$levelData->guid."'>".$levelData->post_title."</a></td>
-							<td>".$levelInfo['time_taken']."</td>
-							<td>".($levelInfo['is_cleared'] == 1 ? 'Yes' : 'In Progress')."</td>
-						</tr>";
-					} 
-					else {
-						$html .= "<tr>
-							<td>".$levelData->ID."</td>
-							<td>".$levelData->post_title."</td>
-							<td>".$levelInfo['time_taken']."</td>
-							<td>-</td>
-						</tr>";
-					}
-				}
-				else if( $i === 0 ){
-					$html .= "<tr><td>".$levelData->ID."</td>
-						<td><a href='".$levelData->guid."'>".$levelData->post_title."</a></td>
-						<td>-</td>
-						<td>-</td>
-					</tr>";
-				}
-				else {
-					$html .= "<tr><td>".$levelData->ID."</td>
-						<td>".$levelData->post_title."</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>";
-				}
 			}
-			$html .= "</table>";*/
-
-			$html .= '<h2>Create Team:</h2><div class="form-container">
-				<form id="emailFrm" method="post">
-					<p>
-						<label for="playit_team_name">Team Name</label>
-						<input type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
-					</p>
-					<p>
-						<label>Member Emails:</label>
-                        <input type="text" id="example_emailBS" name="playit_member_emails">
-					</p>
-					<p>
-						<input type="hidden" name="playit_current_page_id" value="'.$post->ID.'">
-						<input type="submit" value="Submit">
-					</p>
-				</form>
-			</div>';
 
 			return $html;
 		}
+	}
+
+	public function create_team_cb( $atts ) {		
+		global $post;
+
+		$attributes = shortcode_atts( array(
+			'form_heading' => 'Create Team:'
+		), $atts );
+
+		return '<h2>'.$attributes['form_heading'].'</h2>
+		<div class="form-container">
+			<form id="emailFrm" method="post">
+				<p>
+					<label for="playit_team_name">Team Name</label>
+					<input type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
+				</p>
+				<p>
+					<label>Member Emails:</label>
+                    <input type="text" id="example_emailBS" name="playit_member_emails">
+				</p>
+				<p>
+					<input type="hidden" name="playit_current_page_id" value="'.$post->ID.'">
+					<input type="submit" value="Submit">
+				</p>
+			</form>
+		</div>';
 	}
 
 	public function init_actions() {
@@ -595,7 +550,7 @@ class Play_It_Game_Public {
 			$teamInfo = $this->getTeamById( $currentTeamId );
 			if ( empty($teamInfo) ) {
 				return 'The team you selected doesn\'t exists <a href="'.$gameHomePage->guid.'">click here</a> to go to game page';	
-			}			
+			}
 		}
 		else {
 			// wp_redirect($gameHomePage->guid);
@@ -662,21 +617,57 @@ class Play_It_Game_Public {
 					$isCurrentLevelCleared = true;					
 				}				
 			}
-		}		
+		}
 
 		/**
 		* #7: Finally rendering the form/next level message
 		**/
 		if ($isCurrentLevelCleared) {
-			return '<div>This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>'.$post->ID;
+			return '<div>This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>';
 		}
 		else {
-			return '<div class="timer"></div><form method="post" action="">
-			<input type="hidden" value="0" name="_time_taken" />
-			<input type="text" name="_next_step_answer" />
-			<input type="submit" value="Submit" />
-		</form>'.$errorMessage;
-		}		
+			return '<div>
+				<form method="post" action="">
+					<input type="hidden" value="0" name="_time_taken" />
+					<input type="text" name="_next_step_answer" />
+					<input type="submit" value="Submit" />
+				</form>'.$errorMessage.'
+			</div>';
+		}
+	}
+
+	public function show_timer_cb( $atts ) {
+		$attributes = shortcode_atts( array(
+			'hours_label' => 'Hours',
+			'minutes_label' => 'Minutes',
+			'seconds_label' => 'Seconds',
+			'hours_background_color' => '#cccccc9e',
+			'minutes_background_color' => '#cccccc9e',
+			'seconds_background_color' => '#cccccc9e',
+			'hours_font_color' => '#fff',
+			'minutes_font_color' => '#fff',
+			'seconds_font_color' => '#fff',
+		), $atts );
+
+		return '<div class="timer"><div class="timerwrapper">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-4">
+							<div style="background-color:'.$attributes['hours_background_color'].';color:'.$attributes['hours_font_color'].'"
+							 class="h"><h1>00</h1><p>'.$attributes['hours_label'].'</p></div>
+						</div>
+						<div class="col-md-4">
+							<div style="background-color:'.$attributes['minutes_background_color'].';color:'.$attributes['minutes_font_color'].'"
+							 class="m"><h1>00</h1><p>'.$attributes['minutes_label'].'</p></div>
+						</div>
+						<div class="col-md-4">
+							<div style="background-color:'.$attributes['seconds_background_color'].';color:'.$attributes['seconds_font_color'].'"
+							 class="s"><h1>00</h1><p>'.$attributes['seconds_label'].'</p></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>';
 	}
 
 	/**
@@ -730,11 +721,23 @@ class Play_It_Game_Public {
 
 		$html = '';
 		if ( is_array($allPages) && count($allPages) > 0 ) {
-			$html .= '<ul>';
-			foreach ($allPages as $key => $page) {					
-				$html .= '<li><a href="'.$page->guid.'">'.$page->post_title.'</a></li>';
+			$html .= '<div class="container">';
+			$html .= '<div class="row">';
+			foreach ($allPages as $key => $page) {
+				$thumbnailUrl = get_the_post_thumbnail_url($page->ID, 'post-thumbnail');
+				if ( !$thumbnailUrl ) {
+					$thumbnailUrl = get_option('default_game_images');
+				}
+				$html .= '<div class="col-md-4">
+					<a href="'.$page->guid.'">
+						<div><img src="'.$thumbnailUrl.'" /></div>
+						<div><p>'.get_the_excerpt($page->ID).'</p></div>
+						<div>'.$page->post_title.'</div>
+					</a>
+				</div>';
 			}
-			$html .= '<ul>';
+			$html .= '</div>';
+			$html .= '</div>';
 		}
 		
 		return $html;	
