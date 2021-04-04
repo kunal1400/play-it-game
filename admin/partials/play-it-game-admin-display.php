@@ -27,7 +27,7 @@
 		<li><p><b>How to create a Game Home Page?</b></p>
 			<ol>
 				<li><p>Add a Shortcode <i>[create_team form_heading="Create TEAM:"]</i> in editor. This will show the create team form.</p></li>
-				<li><p>Add a Shortcode <i>[team_score_position]</i> in editor. This will promt users to loged in and after login it will show all teams associated with this game, create team form and start playing button.</p></li>
+				<li><p>Add a Shortcode <i>[team_score_position table_label="" sno_label="" teamname_label="" timetaken_label="" clues_label="" score_label="" levels_label="" members_label="" actions_label=""]</i> in editor. This will promt users to loged in and after login it will show all teams associated with this game, create team form and start playing button.</p></li>
 				<li><p>Create a custom fields:</p>
 					<ol>
 						<li><p><i>is_game_home_page</i> and set it to <i>true</i></p></li>
@@ -40,7 +40,7 @@
 			<ol>
 				<li><p>Shortcode for timer: <i>[show_timer hours_label="HOURS" minutes_label="MINUTES" seconds_label="SECONDS" hours_background_color="#cccccc9e" minutes_background_color="#cccccc9e" seconds_background_color="#cccccc9e" hours_font_color="#FFF" minutes_font_color="#FFF" seconds_font_color="#FFF"]</i></p></li>
 				<li><p>Shortcode for next step: <i>[next_step_form answer=""]</i></p></li>
-				<li><p>Shortcode for clue: <i>[show_clue seconds_to_add="50" image_url="" text=""]</i></p></li>
+				<li><p>Shortcode for clue: <i>[show_clue label="" seconds_to_add="50" image_url="" text=""]</i></p></li>
 			</ol>
 		</li>
 	</ol>

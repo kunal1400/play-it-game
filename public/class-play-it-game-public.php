@@ -111,15 +111,23 @@ class Play_It_Game_Public {
 		// getLevelInfo( $teamId, $levelId );
 	}
 
-	public function game_home_page_cb( $atts ) {
+	public function game_home_page_cb( $attributes ) {
 		global $table_prefix;
 		global $wpdb;
 		global $wp;
 		global $post;
 
-		// $attributes = shortcode_atts( array(
-		// 	'productid' => 'current'
-		// ), $atts );
+		$atts = shortcode_atts( array(
+			'table_label' => 'Choose Team:',
+			'sno_label' => 'S.No',
+			'teamname_label' => 'Team Name',
+			'timetaken_label' => 'Time Taken (In Sec)',
+			'clues_label' => 'Clues',
+			'score_label' => 'Score',
+			'levels_label' => 'Levels',
+			'members_label' => 'Member Emails',
+			'actions_label' => 'Action',
+		), $attributes );
 
 		/**
 		* #1: Getting all the levels of the current game (i.e Page)
@@ -181,14 +189,14 @@ class Play_It_Game_Public {
 				$html .= "<h3>Choose Team:</h3>";
 				$html .= "<table id='teams'>
 					<thead>
-						<th>S.No</th>
-						<th>Team Name</th>
-						<th width='100'>Time Taken (In Sec)</th>
-						<th width='100'>Clues</th>
-						<th width='100'>Score</th>
-						<th width='20'>Levels</th>
-						<th>Member Emails</th>
-						<th>Action</th>
+						<th>".$atts['sno_label']."</th>
+						<th>".$atts['teamname_label']."</th>
+						<th width='100'>".$atts['timetaken_label']."</th>
+						<th width='100'>".$atts['clues_label']."</th>
+						<th width='100'>".$atts['score_label']."</th>
+						<th width='20'>".$atts['levels_label']."</th>
+						<th>".$atts['members_label']."</th>
+						<th>".$atts['actions_label']."</th>
 					</thead>";
 				foreach ($teams as $i => $team) {
 					/**
@@ -731,7 +739,6 @@ class Play_It_Game_Public {
 				$html .= '<div class="col-md-4">
 					<a href="'.$page->guid.'">
 						<div><img src="'.$thumbnailUrl.'" /></div>
-						<div><p>'.get_the_excerpt($page->ID).'</p></div>
 						<div>'.$page->post_title.'</div>
 					</a>
 				</div>';
@@ -781,13 +788,14 @@ class Play_It_Game_Public {
 		$attributes = shortcode_atts( array(
 			'seconds_to_add' => 0,
 			'image_url' => null,
+			'label' => "Clue",
 			'text' => ''
 		), $atts );
 
 		$secondsToAdd = $attributes['seconds_to_add'];
 		if ($secondsToAdd && $secondsToAdd > 0) {
 			$str = "<div class='cluewrapper'>";
-				$str .= "<a data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>Clue</a>";
+				$str .= "<a data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>".$attributes['label']."</a>";
 				$str .= "<div class='clue' style='display:none'>";
 					if (!empty($attributes['image_url'])) {
 						$str .= "<div class='imagewrapper'>
