@@ -127,6 +127,7 @@ class Play_It_Game_Public {
 			'levels_label' => 'Levels',
 			'members_label' => 'Member Emails',
 			'actions_label' => 'Action',
+			'css_classes' => '',
 		), $attributes );
 
 		/**
@@ -158,8 +159,8 @@ class Play_It_Game_Public {
 			// 	// 'redirect' => home_url( 'all-games' )
 			// ));
 			// $loginMessage .= '<a href="'.home_url("/wp-login.php?action=register").'">Sign Up</a>';
-			// return $loginMessage;
-			return '<h2><center>Please login to play this game</center></h2>';
+			// return $loginMessage;			
+			return "<div class='".$atts['css_classes']."'><h2><center>Please login to play this game</center></h2></div>";
 		}
 		else {
 			/**
@@ -186,7 +187,7 @@ class Play_It_Game_Public {
 			**/
 			$teams = $this->getAllTeams( $post->ID );
 			if ( is_array($teams) && count($teams) > 0 ) {
-				$html .= "<h3>Choose Team:</h3>";
+				$html .= "<h3>".$atts['table_label']."</h3>";
 				$html .= "<table id='teams'>
 					<thead>
 						<th>".$atts['sno_label']."</th>
@@ -235,7 +236,7 @@ class Play_It_Game_Public {
 				$html .= "<p><i>No teams for this game</i></p>";
 			}
 
-			return $html;
+			return "<div class='".$atts['css_classes']."'>".$html."</div>";
 		}
 	}
 
@@ -243,11 +244,12 @@ class Play_It_Game_Public {
 		global $post;
 
 		$attributes = shortcode_atts( array(
-			'form_heading' => 'Create Team:'
+			'form_heading' => 'Create Team:',
+			'css_classes' => ''
 		), $atts );
 
-		return '<h2>'.$attributes['form_heading'].'</h2>
-		<div class="form-container">
+		return '<div class="form-container '.$attributes['css_classes'].'">
+			<h2>'.$attributes['form_heading'].'</h2>
 			<form id="emailFrm" method="post">
 				<p>
 					<label for="playit_team_name">Team Name</label>
@@ -526,7 +528,10 @@ class Play_It_Game_Public {
 	public function next_step_form_cb( $atts ) {
 		global $post;		
 
-		$attributes = shortcode_atts( array('answer' => ''), $atts );
+		$attributes = shortcode_atts( array(
+			'answer' => '',
+			'css_classes' => ''
+		), $atts );
 		
 		$errorMessage = "";
 
@@ -557,13 +562,13 @@ class Play_It_Game_Public {
 			$currentTeamId = $_GET['currentTeamId'];
 			$teamInfo = $this->getTeamById( $currentTeamId );
 			if ( empty($teamInfo) ) {
-				return 'The team you selected doesn\'t exists <a href="'.$gameHomePage->guid.'">click here</a> to go to game page';	
+				return '<div class="teamnotexists '.$attributes['css_classes'].'">The team you selected doesn\'t exists <a href="'.$gameHomePage->guid.'">click here</a> to go to game page</div>';	
 			}
 		}
 		else {
 			// wp_redirect($gameHomePage->guid);
 			// exit;
-			return "Please choose a team";
+			return '<div class="chooseteam '.$attributes['css_classes'].'">Please choose a team</div>';
 		}
 
 		// // #3: Getting All Levels
@@ -631,10 +636,10 @@ class Play_It_Game_Public {
 		* #7: Finally rendering the form/next level message
 		**/
 		if ($isCurrentLevelCleared) {
-			return '<div>This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>';
+			return '<div class="cleared '.$attributes['css_classes'].'">This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>';
 		}
 		else {
-			return '<div>
+			return '<div class="'.$attributes['css_classes'].'">
 				<form method="post" action="">
 					<input type="hidden" value="0" name="_time_taken" />
 					<input type="text" name="_next_step_answer" />
@@ -655,9 +660,10 @@ class Play_It_Game_Public {
 			'hours_font_color' => '#fff',
 			'minutes_font_color' => '#fff',
 			'seconds_font_color' => '#fff',
+			'css_classes' => '',			
 		), $atts );
 
-		return '<div class="timer"><div class="timerwrapper">
+		return '<div class="timer '.$attributes['css_classes'].'"><div class="timerwrapper">
 				<div class="container">
 					<div class="row">
 						<div class="col-md-4">
@@ -724,7 +730,7 @@ class Play_It_Game_Public {
 			'child_of' => 0,
 			'echo' => false,
 			'meta_key' => 'is_game_home_page',
-			'meta_value' => 'true',
+			'meta_value' => 'true'	
 		));
 
 		$html = '';
@@ -789,12 +795,13 @@ class Play_It_Game_Public {
 			'seconds_to_add' => 0,
 			'image_url' => null,
 			'label' => "Clue",
-			'text' => ''
+			'text' => '',
+			'css_classes' => '',			
 		), $atts );
 
 		$secondsToAdd = $attributes['seconds_to_add'];
 		if ($secondsToAdd && $secondsToAdd > 0) {
-			$str = "<div class='cluewrapper'>";
+			$str = "<div class='cluewrapper ".$attributes['css_classes']."'>";
 				$str .= "<a data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>".$attributes['label']."</a>";
 				$str .= "<div class='clue' style='display:none'>";
 					if (!empty($attributes['image_url'])) {
