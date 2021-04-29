@@ -82,6 +82,21 @@ function plz(digit) {
     return zpad;
 }
 
+function convertSerializeArrayToObject( serializeArray ) {
+    var o = {};
+    jQuery.each(serializeArray, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+}
+
 function showclue(e) {
 	let clickedElement = jQuery(e).parent().find('.clue').toggle()
 	let secondsToAdd = jQuery(e).attr("data-secondsToAdd")
@@ -110,6 +125,49 @@ function showclue(e) {
 			console.log( response )
 		})
 	}
+}
+
+// function toggleModal(e) {
+// 	let targetElement = jQuery(e).attr("data-target")
+// 	if(targetElement){
+// 		// jQuery(`${targetElement}`).modal("show")
+// 		jQuery(`${targetElement}`).addClass("show")
+// 	}
+// }
+
+// function closeModal(e) {
+// 	let targetElement = jQuery(e).closest("div.modal").attr("id")
+// 	if(targetElement){
+// 		// jQuery(`#${targetElement}`).modal("hide")
+// 		jQuery(`#${targetElement}`).removeClass("show")
+// 	}	
+// }
+
+function applyCodeForGame() {
+	var formData = jQuery("#codeLoginForm").serializeArray()
+	var formObj = convertSerializeArrayToObject(formData)	
+
+	if ( formObj['user_name'] ) {
+		jQuery(`[name="${formObj['user_name']}"]`).removeClass("required")
+		jQuery("#codeLoginForm").find("[type='submit']").attr("disabled", true).text("Submitting...")
+		formObj.action = "check_user_name"	
+		jQuery.ajax({
+			url: playit_env.ajax_url,
+			method: 'POST',
+			data: formObj
+		})
+		.done(function( response ) {
+			jQuery("#codeLoginForm").find("[type='submit']").attr("disabled", false).text("Submit")
+			let data = JSON.parse(response)
+			console.log( data, "dataaaaa" )
+			if ( data.status ) {
+				window.location.href = data.redirect_url
+			}
+		})
+	} else {
+		jQuery(`[name="${formObj['user_name']}"]`).addClass("required")
+	}
+	return false
 }
 
 jQuery(document).ready(function(){

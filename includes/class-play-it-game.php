@@ -160,8 +160,12 @@ class Play_It_Game {
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'init_action_cb' );
 		// Hook for admin settings
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'ph_infinite_add_menu' );
+		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'rm_register_meta_box' );
+		$this->loader->add_action( 'save_post', $plugin_admin, 'save_post_call_back', 10, 3 );
 		$this->loader->add_action( 'wp_ajax_add_clue', $plugin_admin, 'add_clue_cb' );
 		$this->loader->add_action( 'wp_ajax_nopriv_add_clue', $plugin_admin, 'add_clue_cb' );
+		$this->loader->add_action( 'wp_ajax_check_user_name', $plugin_admin, 'check_user_name_cb' );
+		$this->loader->add_action( 'wp_ajax_nopriv_check_user_name', $plugin_admin, 'check_user_name_cb' );
 
 	}
 
@@ -189,6 +193,7 @@ class Play_It_Game {
 		$this->loader->add_shortcode( 'next_step_form', $plugin_public, 'next_step_form_cb' );
 		$this->loader->add_shortcode( 'show_clue', $plugin_public, 'show_clue_cb' );
 		$this->loader->add_shortcode( 'show_timer', $plugin_public, 'show_timer_cb' );
+		$this->loader->add_shortcode( 'join_game_by_code', $plugin_public, 'join_game_by_code_cb' );
 
 	}
 

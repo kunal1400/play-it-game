@@ -77,10 +77,17 @@ class Play_It_Game_Public {
 	public function enqueue_scripts() {
 		global $post;		
 		
+		wp_enqueue_script('bootstrap-min', plugin_dir_url( __FILE__ ) . 'js/bootstrap.min.js', 
+			array( 'jquery' ), $this->version, false );
+
 		wp_enqueue_script('jquery-validate-min', plugin_dir_url( __FILE__ ) . 'js/jquery.validate.min.js', 
 			array( 'jquery' ), $this->version, false );
 
 		wp_enqueue_script( $this->plugin_name.'play_it_js', plugin_dir_url( __FILE__ ) . 'js/play-it-game-public.js', array( 'jquery' ), $this->version, false );
+
+		wp_localize_script( $this->plugin_name.'play_it_js', 'playit_env', array(
+			"ajax_url" => admin_url('admin-ajax.php')
+		));
 
 		if ( !empty($_GET['currentTeamId']) && $post && $post->ID ) {			
 			wp_localize_script( $this->plugin_name.'play_it_js', 'current_env', array(
@@ -790,7 +797,7 @@ class Play_It_Game_Public {
 		
 	}
 
-	public function show_clue_cb($atts ) {
+	public function show_clue_cb( $atts ) {
 		$attributes = shortcode_atts( array(
 			'seconds_to_add' => 0,
 			'image_url' => null,
@@ -819,7 +826,51 @@ class Play_It_Game_Public {
 		else {
 			return;
 		}
+	}
 
-	}	
+	public function join_game_by_code_cb( $atts ) {
+		$attributes = shortcode_atts( array(
+			'game_id' => null,
+			'label' => "Add Code",
+			'submit_button_label' => "Submit",
+			'close_button_label' => "Close",
+			'modal_title' => "Join Team By Code",
+			'redirect_url' => site_url()
+		), $atts );
+
+		if ( !$attributes['game_id'] ) {
+			return;
+		}
+
+		return '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#join_game_by_code_modal">'.$attributes['label'].'</button>			
+			<div class="modal fade" id="join_game_by_code_modal" tabindex="-1" role="dialog" aria-labelledby="join_game_by_code_modal_label" aria-hidden="true">
+			  <div class="modal-dialog modal-dialog-centered" role="document">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        			<h4 class="modal-title" id="myModalLabel">'.$attributes['modal_title'].'</h4>
+			      </div>
+					<form onsubmit="return applyCodeForGame()" method="post" id="codeLoginForm">
+			      		<div class="modal-body">
+				        	<div class="md-form mb-5">
+								<label for="form34">User Name</label>
+								<input type="text" id="form34" name="user_name" class="form-control" value="">
+					        </div>
+					        <div style="display:none" class="md-form mb-5">
+								<label for="form35">Code</label>
+								<input type="text" id="form35" name="user_code" class="form-control" value="">
+					        </div>
+				      	</div>
+			      		<div class="modal-footer">
+			      			<input type="hidden" name="game_id" value="'.$attributes['game_id'].'" />
+			      			<input type="hidden" name="redirect_url" value="'.$attributes['redirect_url'].'" />
+			        		<button type="button" class="btn btn-secondary" data-dismiss="modal">'.$attributes['close_button_label'].'</button>
+			        		<button type="submit" class="btn btn-primary">'.$attributes['submit_button_label'].'</button>
+			      		</div>
+			    	</form>
+			    </div>
+			  </div>
+			</div>';
+	}
 
 }
