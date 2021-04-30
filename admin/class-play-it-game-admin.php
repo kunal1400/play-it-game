@@ -272,37 +272,32 @@ class Play_It_Game_Admin {
 	}
 
 	public function check_user_name_cb() {
-		if (!empty($_REQUEST['game_id'])) {
-			if (!empty($_REQUEST['user_name'])) {
-				$username = $_REQUEST['user_name'];
-				$redirectUrl = $_REQUEST['redirect_url'];
-				$gameId = $_REQUEST['game_id'];
-				$user 	= get_user_by('login', $username);
+		if (!empty($_REQUEST['user_name'])) {
+			$username = $_REQUEST['user_name'];
+			$redirectUrl = $_REQUEST['redirect_url'];
+			$gameId = $_REQUEST['game_id'];
+			$user 	= get_user_by('login', $username);
 
-				if ( !$user ) {
-					$emailForGame = "$username@".time().".com";
-					$userPassword = time();
-					$userId = wp_create_user( $username, $userPassword, $emailForGame);					
-				} else {					
-					$userId = $user->ID;
-				}
+			if ( !$user ) {
+				$emailForGame = "$username@".time().".com";
+				$userPassword = time();
+				$userId = wp_create_user( $username, $userPassword, $emailForGame);					
+			} else {					
+				$userId = $user->ID;
+			}
 
-				if ($userId) {
-					wp_clear_auth_cookie();
-					wp_set_current_user ( $userId );
-					wp_set_auth_cookie  ( $userId );
-					$res = array("status" => true, "redirect_url" => $redirectUrl );
-				} else {
-					$res = array("status" => false, "msg" => "either userPassword or emailForGame is empty" );
-				}
-			} 
-			else {
-				$res = array("status" => false, "msg" => "username is missing" );
+			if ($userId) {
+				wp_clear_auth_cookie();
+				wp_set_current_user ( $userId );
+				wp_set_auth_cookie  ( $userId );
+				$res = array("status" => true, "redirect_url" => $redirectUrl );
+			} else {
+				$res = array("status" => false, "msg" => "either userPassword or emailForGame is empty" );
 			}
 		} 
 		else {
-			$res = array("status" => false, "msg" => "game_id is missing" );
-		}
+			$res = array("status" => false, "msg" => "username is missing" );
+		}		
 		echo json_encode($res);
 		die;
 	}

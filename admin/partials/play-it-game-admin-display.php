@@ -43,6 +43,11 @@
 				<li><p>Shortcode for clue: <i>[show_clue label="" seconds_to_add="50" image_url="" text="" css_classes=""]</i></p></li>
 			</ol>
 		</li>
+		<li><p><b>Allow users to login from anywhere by email</b></p>
+			<ol>
+				<li><p>Shortcode for Login By Code: <i>[join_game_by_code redirect_url="https://reactdemo.play-it.co.il/wp-admin" label="Add Code" submit_button_label="Submit" close_button_label="Close" modal_title="Join Team By Code"]</i></p></li>
+			</ol>
+		</li>
 	</ol>
 	<hr/>
 	<h1>Your Plugin Page Title</h1>

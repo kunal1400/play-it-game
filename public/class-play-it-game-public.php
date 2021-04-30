@@ -207,6 +207,20 @@ class Play_It_Game_Public {
 						<th>".$atts['actions_label']."</th>
 					</thead>";
 				foreach ($teams as $i => $team) {
+					
+					$memberUserNames = array();
+					if ($team['members_email']) {
+						$memberEmails = explode(",", $team['members_email']);
+						foreach ($memberEmails as $i => $email) {
+							$memberInfo = get_user_by('email', $email);
+							if ( !empty($memberInfo->data->user_login) ) {
+								$memberUserNames[] = $memberInfo->data->user_login;
+							} else {
+								$memberUserNames[] = $email;
+							}
+						}
+					}
+
 					/**
 					* #6: Showing team info in table row and showing the buttons
 					**/
@@ -233,7 +247,7 @@ class Play_It_Game_Public {
 						<td>'.$team['clue_seconds'].'</td>
 						<td>'.($team['total_score']*$scoreMultipler).'</td>
 						<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>
-						<td>'.$team['members_email'].'</td>
+						<td>'.implode(", ", $memberUserNames).'</td>
 						<td>'.$buttons.'</td>
 					</tr>';
 				}
@@ -837,10 +851,6 @@ class Play_It_Game_Public {
 			'modal_title' => "Join Team By Code",
 			'redirect_url' => site_url()
 		), $atts );
-
-		if ( !$attributes['game_id'] ) {
-			return;
-		}
 
 		return '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#join_game_by_code_modal">'.$attributes['label'].'</button>			
 			<div class="modal fade" id="join_game_by_code_modal" tabindex="-1" role="dialog" aria-labelledby="join_game_by_code_modal_label" aria-hidden="true">
