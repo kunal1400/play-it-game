@@ -266,26 +266,30 @@ class Play_It_Game_Public {
 
 		$attributes = shortcode_atts( array(
 			'form_heading' => 'Create Team:',
-			'css_classes' => ''
+			'css_classes' => '',
+			'email_required' => "no",
 		), $atts );
 
-		return '<div class="form-container '.$attributes['css_classes'].'">
-			<h2>'.$attributes['form_heading'].'</h2>
-			<form id="emailFrm" method="post">
-				<p>
-					<label for="playit_team_name">Team Name</label>
-					<input type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
-				</p>
-				<p>
-					<label>Member Emails:</label>
-                    <input type="text" id="example_emailBS" name="playit_member_emails">
-				</p>
-				<p>
-					<input type="hidden" name="playit_current_page_id" value="'.$post->ID.'">
-					<input type="submit" value="Submit">
-				</p>
-			</form>
-		</div>';
+		$str  = '<div class="form-container '.$attributes['css_classes'].'">';
+		$str .= '<h2>'.$attributes['form_heading'].'</h2>';
+		$str .= '<form id="emailFrm" method="post">';
+		$str .= '<p>
+			<label for="playit_team_name">Team Name</label>
+			<input type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
+		</p>';
+		if($attributes['email_required'] == "yes") {
+			$str .= '<p>
+				<label>Member Emails:</label>
+                <input type="text" id="example_emailBS" name="playit_member_emails">
+			</p>';
+		}
+		$str .= '<p>
+			<input type="hidden" name="playit_current_page_id" value="'.$post->ID.'">
+			<input type="submit" value="Submit">
+		</p>';
+		$str .= '</form>';
+		$str .= '</div>';
+		return $str;
 	}
 
 	public function init_actions() {
@@ -297,33 +301,38 @@ class Play_It_Game_Public {
 		$currentUser = get_userdata($playit_team_created_by);
 
 		// #2: Inserting/Updating the team and team members according to request data
-		if( isset($_REQUEST['playit_member_emails']) && isset($_REQUEST['playit_team_name']) ) {
+		if( isset($_REQUEST['playit_team_name']) ) {
 			$playit_team_name 		= $_REQUEST['playit_team_name'];
-			$playit_member_emails 	= explode(",", $_REQUEST['playit_member_emails']);
 			$playit_current_page_id = $_REQUEST['playit_current_page_id'];
-			// $playit_member_emails[] = $currentUser->data->user_email;
 
 			// Checking if member emails is associated in team or not
 			$emailsToInsert = array();
 			$alreadyEmails 	= array();
-			if ($playit_member_emails && count($playit_member_emails)) {
-				foreach ($playit_member_emails as $i => $email) {
-					$teamForThisEmail = $this->getUserTeamsInGameByEmail( $playit_current_page_id, $email );
-					if (is_array($teamForThisEmail) && count($teamForThisEmail) > 0) {
-						$alreadyEmails[] = $email;						
+
+			if ( isset($_REQUEST['playit_member_emails']) ) {
+				$playit_member_emails 	= explode(",", $_REQUEST['playit_member_emails']);
+				if ($playit_member_emails && count($playit_member_emails)) {
+					foreach ($playit_member_emails as $i => $email) {
+						$teamForThisEmail = $this->getUserTeamsInGameByEmail( $playit_current_page_id, $email );
+						if (is_array($teamForThisEmail) && count($teamForThisEmail) > 0) {
+							$alreadyEmails[] = $email;						
+						}
+						else {
+							$emailsToInsert[] = $email;
+						}					
 					}
-					else {
-						$emailsToInsert[] = $email;
-					}					
-				}
+				}	
 			}			
 
 			// If error is present then show error message
 			$manageTeamResponse = false;
-			if (is_array($emailsToInsert) && count($emailsToInsert) > 0) {
-				// Pushing current user email in array also
+			
+			// Pushing current user email in array also
+			if ( !empty($currentUser->data->user_email) ) {
 				$emailsToInsert[] 	= $currentUser->data->user_email;
+			}
 
+			if (is_array($emailsToInsert) && count($emailsToInsert) > 0) {
 				// Creating a team
 				$manageTeamResponse = $this->manageTeam($playit_team_name, implode(",", array_unique($emailsToInsert)), $playit_current_page_id, $playit_team_created_by);				
 			}
@@ -717,12 +726,14 @@ class Play_It_Game_Public {
 		// Implies that it is level
 		if ( isset($levelInfo->post_parent) && $levelInfo->post_parent != 0 ) {
 			$gameLevels = get_pages(array(
-				'child_of' => $levelInfo->post_parent
+				'child_of' => $levelInfo->post_parent,
+				'sort_column' => 'menu_order'
 			));
 		}
 		else {
 			$gameLevels = get_pages(array(
-				'child_of' => $pageId
+				'child_of' => $pageId,
+				'sort_column' => 'menu_order'
 			));			
 		}
 
