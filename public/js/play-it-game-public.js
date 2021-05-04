@@ -35,8 +35,10 @@ function count() {
 	let selector = jQuery(".timer")
 	if (selector.length > 0 && current_env ) {
 		let cookieName = `_current_env_id_${current_env.id}`
-		let secondsP = jQuery("[name='_time_taken']").val()
-		secondsP++
+		let secondsP = jQuery("[name='_time_taken']").val()		
+		if (!secondsP) {
+			secondsP = 0
+		}
 
 		// var time_shown = selector.text();
 		let time_shown = getCookie( cookieName )
@@ -48,20 +50,25 @@ function count() {
 	    let hour = Number(time_chunks[0]);
 	    let mins = Number(time_chunks[1]);
 	    let secs = Number(time_chunks[2]);
+
+		secondsP = parseInt(secs) + parseInt(mins*60) + parseInt(hour*60*60)
+
 	    secs++;
 		if (secs==60){
 			secs = 0;
-			mins=mins + 1;
+			mins = mins + 1;
 		} 
 		if (mins==60){
-			mins=0;
-			hour=hour + 1;
+			mins = 0;
+			hour = hour + 1;
 		}
-		if (hour==13){
-			hour=1;
+		if (hour==13){			
+			hour = 1;
 		}
-		console.log( secs, `${plz(hour)}:${plz(mins)}:${plz(secs)}`)
+
+		console.log( secs, `${plz(hour)}:${plz(mins)}:${plz(secs)}`, secondsP, "secondsP")
 		
+		// secondsP++
 	    selector.find(".h>h1").html(plz(hour));
 	    selector.find(".m>h1").html(plz(mins));
 	    selector.find(".s>h1").html(plz(secs));
@@ -106,7 +113,7 @@ function showclue(e) {
 	// } else {
 	// 	clickedElement.addClass("showclue")		
 	// }
-
+	jQuery("input, input[type='submit']").attr("disabled", true)
 	console.log(current_env, secondsToAdd, "+current_env+secondsToAdd+")
 	if (secondsToAdd && parseInt(secondsToAdd) > 0) {
 		jQuery.ajax({
@@ -122,6 +129,7 @@ function showclue(e) {
 			}
 		})
 		.done(function( response ) {
+			jQuery("input, input[type='submit']").attr("disabled", false)			
 			console.log( response )
 		})
 	}

@@ -104,7 +104,21 @@ class Play_It_Game_Public {
 
 	public function page_load_actions() {
 		global $post;		
-		global $table_prefix, $wpdb;		
+		global $table_prefix, $wpdb;
+		if ( is_user_logged_in() && 'page' === get_post_type() AND is_singular() ) {
+			$allLevels = $this->getOtherLevels( $post->ID );
+			if ( is_array($allLevels) && count($allLevels) ) {
+				foreach ($allLevels as $id => $url) {
+					if ( $id !== $post->ID ) {
+						$cookieName = "_current_env_id_".get_current_user_id().'_'.$id;
+						if ( isset($_COOKIE[$cookieName]) ) {
+							unset($_COOKIE[$cookieName]); 
+							setcookie( $cookieName, null, date('Y-m-d', strtotime('-8 days')), "/" ); 
+						}
+					}
+				}
+			}
+		}		
 	}
 
 	public function getTeamPosition( $gameId, $teamId ) {
@@ -211,7 +225,7 @@ class Play_It_Game_Public {
 					$memberUserNames = array();
 					if ($team['members_email']) {
 						$memberEmails = explode(",", $team['members_email']);
-						foreach ($memberEmails as $i => $email) {
+						foreach ($memberEmails as $j => $email) {
 							$memberInfo = get_user_by('email', $email);
 							if ( !empty($memberInfo->data->user_login) ) {
 								$memberUserNames[] = $memberInfo->data->user_login;
@@ -245,7 +259,7 @@ class Play_It_Game_Public {
 						<td>'.$team['team_name'].'</td>
 						<td>'.$team['total_time_taken'].'</td>
 						<td>'.$team['clue_seconds'].'</td>
-						<td>'.($team['total_score']*$scoreMultipler).'</td>
+						<td>'.round($team['total_score']/$scoreMultipler, 2).'</td>
 						<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>
 						<td>'.implode(", ", $memberUserNames).'</td>
 						<td>'.$buttons.'</td>
@@ -292,13 +306,10 @@ class Play_It_Game_Public {
 		return $str;
 	}
 
-	public function init_actions() {
-		global $wp;
-		// if ( 'page' === get_post_type() AND is_singular() ) {
-		
+	public function init_actions() {		
 		// #1: Getting the current user info
 		$playit_team_created_by = get_current_user_id();
-		$currentUser = get_userdata($playit_team_created_by);
+		$currentUser = get_userdata($playit_team_created_by);		
 
 		// #2: Inserting/Updating the team and team members according to request data
 		if( isset($_REQUEST['playit_team_name']) ) {
@@ -432,7 +443,8 @@ class Play_It_Game_Public {
 	/**
 	* Formula for score
 	*
-	* maxscore = 5/(5+0)
+	* maxscore = 5/(5+0)  levels per second
+	* LevelsCleared*3600 - (totalTimeTaken + totalCluesTaken )
 	*
 	* score = (Number Of Levels/(Total Time Taken + Total Clues))*100
 	**/
@@ -446,6 +458,11 @@ class Play_It_Game_Public {
 		(SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as clue_seconds,
 		(
 			((SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish')/((SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) + (SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1)))
+		) as old_total_score,
+		(
+			(
+				((SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1)*3600) - ((SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) + (SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1))
+			)
 		) as total_score,
 		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels, 
 		(SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish') as total_levels, 
@@ -636,8 +653,7 @@ class Play_It_Game_Public {
 
 						$gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, $timeTaken, 1);
 
-						if ($gameLevelRes) {
-							// setcookie("_timepassed", time() - 3600);
+						if ($gameLevelRes) {							
 							wp_redirect($nextLevel);
 							exit;
 						}

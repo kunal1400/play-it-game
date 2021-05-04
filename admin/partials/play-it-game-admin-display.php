@@ -26,7 +26,7 @@
 		</p>
 		<li><p><b>How to create a Game Home Page?</b></p>
 			<ol>
-				<li><p>Add a Shortcode <i>[create_team form_heading="Create TEAM:" css_classes=""]</i> in editor. This will show the create team form.</p></li>
+				<li><p>Add a Shortcode <i>[create_team form_heading="Create TEAM:" email_required="yes" css_classes=""]</i> in editor. This will show the create team form.</p></li>
 				<li><p>Add a Shortcode <i>[team_score_position table_label="" sno_label="" teamname_label="" timetaken_label="" clues_label="" score_label="" levels_label="" members_label="" actions_label="" css_classes=""]</i> in editor. This will promt users to loged in and after login it will show all teams associated with this game, create team form and start playing button.</p></li>
 				<li><p>Create a custom fields:</p>
 					<ol>

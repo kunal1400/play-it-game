@@ -211,16 +211,14 @@ class Play_It_Game_Admin {
 		return $wpdb->query($sql);
 	}
 
-	// public function add_clue_cb() {
-	// 	if( isset($_REQUEST['secondsToAdd']) && isset($_REQUEST['current_level_id']) && isset($_REQUEST['current_team_id']) && isset($_REQUEST['current_user_id']) && isset($_REQUEST['current_game_id']) ) {
-	// 		$gameLevelRes = $this->manageGameLevel($_REQUEST['current_team_id'], $_REQUEST['current_game_id'], $_REQUEST['current_user_id'], $_REQUEST['current_level_id'], $_REQUEST['secondsToAdd']
-	// 		);
-	// 		echo '<pre>';
-	// 		print_r($gameLevelRes);
-	// 		echo '</pre>';
-	// 	}		
-	// 	exit;
-	// }
+	public function add_clue_cb() {
+		if( isset($_REQUEST['secondsToAdd']) && isset($_REQUEST['current_level_id']) && isset($_REQUEST['current_team_id']) && isset($_REQUEST['current_user_id']) && isset($_REQUEST['current_game_id']) ) {
+			$gameLevelRes = $this->manageGameLevel($_REQUEST['current_team_id'], $_REQUEST['current_game_id'], $_REQUEST['current_user_id'], $_REQUEST['current_level_id'], $_REQUEST['secondsToAdd']
+			);
+			echo json_encode($gameLevelRes);			
+		}		
+		exit;
+	}
 
 	public function save_post_call_back( $post_id, $post, $update) {
 		if ($post->post_parent == 0) {
