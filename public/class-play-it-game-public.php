@@ -206,6 +206,7 @@ class Play_It_Game_Public {
 			/**
 			* #5: Listing all teams of the current game
 			**/
+			$otherLevels = $this->getOtherLevels($post->ID);			
 			$teams = $this->getAllTeams( $post->ID );
 			if ( is_array($teams) && count($teams) > 0 ) {
 				$html .= "<h3>".$atts['table_label']."</h3>";
@@ -712,15 +713,15 @@ class Play_It_Game_Public {
 		return '<div class="timer '.$attributes['css_classes'].'"><div class="timerwrapper">
 				<div class="container">
 					<div class="row">
-						<div class="col-md-4">
+						<div class="col-md-4 col-sm-4 col-xs-4">
 							<div style="background-color:'.$attributes['hours_background_color'].';color:'.$attributes['hours_font_color'].'"
 							 class="h"><h1>00</h1><p>'.$attributes['hours_label'].'</p></div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-4 col-sm-4 col-xs-4">
 							<div style="background-color:'.$attributes['minutes_background_color'].';color:'.$attributes['minutes_font_color'].'"
 							 class="m"><h1>00</h1><p>'.$attributes['minutes_label'].'</p></div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-4 col-sm-4 col-xs-4">
 							<div style="background-color:'.$attributes['seconds_background_color'].';color:'.$attributes['seconds_font_color'].'"
 							 class="s"><h1>00</h1><p>'.$attributes['seconds_label'].'</p></div>
 						</div>
@@ -753,8 +754,8 @@ class Play_It_Game_Public {
 			));			
 		}
 
-		foreach ($gameLevels as $id => $level) {
-			$levelsWithUrl[$level->ID] = $level->guid;				
+		foreach ($gameLevels as $id => $level) {			
+			$levelsWithUrl[$level->ID] = get_the_permalink($level->ID);
 		}
 
 		return $levelsWithUrl;

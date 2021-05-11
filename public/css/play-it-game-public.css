@@ -85,4 +85,5 @@ input[type=submit]:hover {
 .timerwrapper .s {
   padding: 20px;
   text-align: center;
+  word-break: break-all;
 }
