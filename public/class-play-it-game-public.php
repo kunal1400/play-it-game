@@ -52,7 +52,7 @@ class Play_It_Game_Public {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
-		global $post;		
+		global $post;
 
 	}
 
@@ -75,12 +75,12 @@ class Play_It_Game_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-		global $post;		
-		
-		wp_enqueue_script('bootstrap-min', plugin_dir_url( __FILE__ ) . 'js/bootstrap.min.js', 
+		global $post;
+
+		wp_enqueue_script('bootstrap-min', plugin_dir_url( __FILE__ ) . 'js/bootstrap.min.js',
 			array( 'jquery' ), $this->version, false );
 
-		wp_enqueue_script('jquery-validate-min', plugin_dir_url( __FILE__ ) . 'js/jquery.validate.min.js', 
+		wp_enqueue_script('jquery-validate-min', plugin_dir_url( __FILE__ ) . 'js/jquery.validate.min.js',
 			array( 'jquery' ), $this->version, false );
 
 		wp_enqueue_script( $this->plugin_name.'play_it_js', plugin_dir_url( __FILE__ ) . 'js/play-it-game-public.js', array( 'jquery' ), $this->version, false );
@@ -89,21 +89,37 @@ class Play_It_Game_Public {
 			"ajax_url" => admin_url('admin-ajax.php')
 		));
 
-		if ( !empty($_GET['currentTeamId']) && $post && $post->ID ) {			
-			wp_localize_script( $this->plugin_name.'play_it_js', 'current_env', array(
-				"id" => get_current_user_id().'_'.$post->ID,
-				"current_user_id" => get_current_user_id(),
-				"current_team_id" => $_GET['currentTeamId'],
-				"current_level_id" => $post->ID,
-				"current_game_id" => $post->post_parent,
-				"ajax_url" => admin_url('admin-ajax.php')
-			) );
+		if ( $post && $post->ID ) {
+			$isTeamGame = get_post_meta( $post->ID, 'is_team_game', true );
+			if ( $isTeamGame && $isTeamGame == "true" && !empty($_GET['currentTeamId']) ) {
+				wp_localize_script( $this->plugin_name.'play_it_js', 'current_env', array(
+					"id" => get_current_user_id().'_'.$post->ID,
+					"is_team_game" => $isTeamGame,
+					"current_user_id" => get_current_user_id(),
+					"current_team_id" => $_GET['currentTeamId'],
+					"current_level_id" => $post->ID,
+					"current_game_id" => $post->post_parent,
+					"ajax_url" => admin_url('admin-ajax.php')
+				));
+			}
+			else {
+				wp_localize_script( $this->plugin_name.'play_it_js', 'current_env', array(
+					"id" => get_current_user_id().'_'.$post->ID,
+					"is_team_game" => $isTeamGame,
+					"current_user_id" => get_current_user_id(),
+					"current_team_id" => 0,
+					"current_level_id" => $post->ID,
+					"current_game_id" => $post->post_parent,
+					"ajax_url" => admin_url('admin-ajax.php')
+				));
+			}
+
 		}
 
 	}
 
 	public function page_load_actions() {
-		global $post;		
+		global $post;
 		global $table_prefix, $wpdb;
 		if ( is_user_logged_in() && 'page' === get_post_type() AND is_singular() ) {
 			$allLevels = $this->getOtherLevels( $post->ID );
@@ -112,13 +128,18 @@ class Play_It_Game_Public {
 					if ( $id !== $post->ID ) {
 						$cookieName = "_current_env_id_".get_current_user_id().'_'.$id;
 						if ( isset($_COOKIE[$cookieName]) ) {
-							unset($_COOKIE[$cookieName]); 
-							setcookie( $cookieName, null, date('Y-m-d', strtotime('-8 days')), "/" ); 
+							unset($_COOKIE[$cookieName]);
+							setcookie( $cookieName, null,
+								array(
+									'expires' => date('Y-m-d', strtotime('-8 days')),
+									'path' => '/',
+								)
+							);
 						}
 					}
 				}
 			}
-		}		
+		}
 	}
 
 	public function getTeamPosition( $gameId, $teamId ) {
@@ -161,11 +182,11 @@ class Play_It_Game_Public {
 		/**
 		* #2: Getting the multipler
 		**/
-		$score_multipler = get_post_meta( $post->ID, 'score_multipler', true);		
+		$score_multipler = get_post_meta( $post->ID, 'score_multipler', true);
 		if (!$score_multipler) {
 			$scoreMultipler = 10;
 		} else {
-			$scoreMultipler = (int)$score_multipler;			
+			$scoreMultipler = (int)$score_multipler;
 		}
 
 		if( !is_user_logged_in() ) {
@@ -180,7 +201,7 @@ class Play_It_Game_Public {
 			// 	// 'redirect' => home_url( 'all-games' )
 			// ));
 			// $loginMessage .= '<a href="'.home_url("/wp-login.php?action=register").'">Sign Up</a>';
-			// return $loginMessage;			
+			// return $loginMessage;
 			return "<div class='".$atts['css_classes']."'><h2><center>Please login to play this game</center></h2></div>";
 		}
 		else {
@@ -189,10 +210,10 @@ class Play_It_Game_Public {
 			**/
 			$html = "";
 			$all_games_page_id = get_option('all_games_page');
-		    if ($all_games_page_id ) {
+	    if ($all_games_page_id ) {
 				$allGamePage = get_post($all_games_page_id);
 				$html .= "<div style='text-align:right'><a style='color: #48bb48;' href='".$allGamePage->guid."'>View All Games</a></div>";
-		    }
+	    }
 
 			if ( !empty($_GET['already_emails']) ) {
 				$html .= "<div style='color: #f52f2f;font-style: italic;'>".$_GET['already_emails']." already associated with other teams</div>";
@@ -206,23 +227,37 @@ class Play_It_Game_Public {
 			/**
 			* #5: Listing all teams of the current game
 			**/
-			$otherLevels = $this->getOtherLevels($post->ID);			
+			$otherLevels = $this->getOtherLevels($post->ID);
+
+			/**
+			* #6: Checking if current game is team game or not
+			**/
+			$isTeamGame = get_post_meta( $post->ID, 'is_team_game', true );
+			if ( $isTeamGame && $isTeamGame == "true" ) {
+				$isTeamGame = true;
+			}
+			else {
+				$isTeamGame = false;
+			}
+
 			$teams = $this->getAllTeams( $post->ID );
 			if ( is_array($teams) && count($teams) > 0 ) {
 				$html .= "<h3>".$atts['table_label']."</h3>";
-				$html .= "<table id='teams'>
-					<thead>
-						<th>".$atts['sno_label']."</th>
-						<th>".$atts['teamname_label']."</th>
-						<th width='100'>".$atts['timetaken_label']."</th>
-						<th width='100'>".$atts['clues_label']."</th>
-						<th width='100'>".$atts['score_label']."</th>
-						<th width='20'>".$atts['levels_label']."</th>
-						<th>".$atts['members_label']."</th>
-						<th>".$atts['actions_label']."</th>
-					</thead>";
+				$html .= "<table id='teams'>";
+				$html .= "<thead>";
+				$html .= "<th>".$atts['sno_label']."</th>";
+				if ($isTeamGame) {
+					$html .= "<th>".$atts['teamname_label']."</th>";
+				}
+				$html .= "<th width='100'>".$atts['timetaken_label']."</th>";
+				$html .= "<th width='100'>".$atts['clues_label']."</th>";
+				$html .= "<th width='100'>".$atts['score_label']."</th>";
+				$html .= "<th width='20'>".$atts['levels_label']."</th>";
+				$html .= "<th>".$atts['members_label']."</th>";
+				$html .= "<th>".$atts['actions_label']."</th>";
+				$html .= "</thead>";
+
 				foreach ($teams as $i => $team) {
-					
 					$memberUserNames = array();
 					if ($team['members_email']) {
 						$memberEmails = explode(",", $team['members_email']);
@@ -244,9 +279,9 @@ class Play_It_Game_Public {
 					if (count($userTeamIds) == 0) {
 						$buttons = '<a href="?game_action=joinme&team_id='.$team['id'].'" class="button button-blue">Join</a>';
 					}
-					// User is associated to this team then show Start Playing button				
+					// User is associated to this team then show Start Playing button
 					else if ( in_array($team['id'], $userTeamIds) ) {
-						$nextLevelLink = $this->getGameNextLevelLink( $post->ID );						
+						$nextLevelLink = $this->getGameNextLevelLink( $post->ID );
 						if ( !$nextLevelLink ) {
 							$nextLevelLink = $post->guid;
 						}
@@ -255,20 +290,22 @@ class Play_It_Game_Public {
 						$buttons = '-';
 					}
 
-					$html .= '<tr>
-						<td>'.($i+1).'</td>
-						<td>'.$team['team_name'].'</td>
-						<td>'.$team['total_time_taken'].'</td>
-						<td>'.$team['clue_seconds'].'</td>
-						<td>'.round($team['total_score']/$scoreMultipler, 2).'</td>
-						<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>
-						<td>'.implode(", ", $memberUserNames).'</td>
-						<td>'.$buttons.'</td>
-					</tr>';
+					$html .= '<tr>';
+					$html .= '<td>'.($i+1).'</td>';
+					if ($isTeamGame) {
+						$html .= '<td>'.$team['team_name'].'</td>';
+					}
+					$html .= '<td>'.$team['total_time_taken'].'</td>';
+					$html .= '<td>'.$team['clue_seconds'].'</td>';
+					$html .= '<td>'.round($team['total_score']/$scoreMultipler, 2).'</td>';
+					$html .= '<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>';
+					$html .= '<td>'.implode(", ", $memberUserNames).'</td>';
+					$html .= '<td>'.$buttons.'</td>';
+					$html .= '</tr>';
 				}
-				$html .= "</table><br/>";				
+				$html .= "</table><br/>";
 			}
-			else {
+			else if($isTeamGame) {
 				$html .= "<p><i>No teams for this game</i></p>";
 			}
 
@@ -276,9 +313,12 @@ class Play_It_Game_Public {
 		}
 	}
 
-	public function create_team_cb( $atts ) {		
+	public function create_team_cb( $atts ) {
 		global $post;
 
+		/**
+		* #1: Getting shortcode attributes
+		**/
 		$attributes = shortcode_atts( array(
 			'form_heading' => 'Create Team:',
 			'css_classes' => '',
@@ -287,30 +327,52 @@ class Play_It_Game_Public {
 
 		$str  = '<div class="form-container '.$attributes['css_classes'].'">';
 		$str .= '<h2>'.$attributes['form_heading'].'</h2>';
-		$str .= '<form id="emailFrm" method="post">';
-		$str .= '<p>
-			<label for="playit_team_name">Team Name</label>
-			<input type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
-		</p>';
-		if($attributes['email_required'] == "yes") {
+
+		/**
+		* #2: Check if current game is team game or not
+		**/
+		$isTeamGame = get_post_meta( $post->ID, 'is_team_game', true );
+		if ( $isTeamGame && $isTeamGame !== "false" ) {
+			/**
+			* #3: Showing the create team form
+			**/
+			$str .= '<form id="emailFrm" method="post">';
 			$str .= '<p>
-				<label>Member Emails:</label>
-                <input type="text" id="example_emailBS" name="playit_member_emails">
+				<label for="playit_team_name">Team Name</label>
+				<input type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
 			</p>';
+			if($attributes['email_required'] == "yes") {
+				$str .= '<p>
+					<label>Member Emails:</label>
+					<input type="text" id="example_emailBS" name="playit_member_emails">
+				</p>';
+			}
+			$str .= '<p>
+				<input type="hidden" name="playit_current_page_id" value="'.$post->ID.'">
+				<input type="submit" value="Submit">
+			</p>';
+			$str .= '</form>';
 		}
-		$str .= '<p>
-			<input type="hidden" name="playit_current_page_id" value="'.$post->ID.'">
-			<input type="submit" value="Submit">
-		</p>';
-		$str .= '</form>';
+		else {
+			/**
+			* #3: Showing the start playing button
+			**/
+			$nextLevelLink = $this->getGameNextLevelLink( $post->ID );
+			if ( !$nextLevelLink ) {
+				$nextLevelLink = $post->guid;
+			}
+			$str .= '<a href="'.add_query_arg('currentTeamId', 0, $nextLevelLink ).'" class="button button-black">Start Playing</a>';
+		}
 		$str .= '</div>';
 		return $str;
 	}
 
-	public function init_actions() {		
+	public function init_actions() {
+		global $post;
+
 		// #1: Getting the current user info
 		$playit_team_created_by = get_current_user_id();
-		$currentUser = get_userdata($playit_team_created_by);		
+		$currentUser = get_userdata($playit_team_created_by);
 
 		// #2: Inserting/Updating the team and team members according to request data
 		if( isset($_REQUEST['playit_team_name']) ) {
@@ -327,18 +389,18 @@ class Play_It_Game_Public {
 					foreach ($playit_member_emails as $i => $email) {
 						$teamForThisEmail = $this->getUserTeamsInGameByEmail( $playit_current_page_id, $email );
 						if (is_array($teamForThisEmail) && count($teamForThisEmail) > 0) {
-							$alreadyEmails[] = $email;						
+							$alreadyEmails[] = $email;
 						}
 						else {
 							$emailsToInsert[] = $email;
-						}					
+						}
 					}
-				}	
-			}			
+				}
+			}
 
 			// If error is present then show error message
 			$manageTeamResponse = false;
-			
+
 			// Pushing current user email in array also
 			if ( !empty($currentUser->data->user_email) ) {
 				$emailsToInsert[] 	= $currentUser->data->user_email;
@@ -346,7 +408,7 @@ class Play_It_Game_Public {
 
 			if (is_array($emailsToInsert) && count($emailsToInsert) > 0) {
 				// Creating a team
-				$manageTeamResponse = $this->manageTeam($playit_team_name, implode(",", array_unique($emailsToInsert)), $playit_current_page_id, $playit_team_created_by);				
+				$manageTeamResponse = $this->manageTeam($playit_team_name, implode(",", array_unique($emailsToInsert)), $playit_current_page_id, $playit_team_created_by);
 			}
 
 			// If error is present then show error message
@@ -378,27 +440,78 @@ class Play_It_Game_Public {
 
 					$this->updateEmailInTeam( $allEmailStrings, $teamId );
 				}
-			}					
+			}
 		}
 		// }
+
+		#3: If current is page is game level then only perform db operations
+
+		/**
+		* Handling the event after answer has been posted via shortcode
+		**/
+		if ( 	isset($_POST['_current_answer']) &&
+					isset($_POST['_current_team_id']) &&
+					isset($_POST['_next_step_answer']) &&
+					!empty($_POST['_current_game_id']) &&
+					!empty($_POST['_current_level_id'])
+				) {
+	    if ( strtolower($_POST['_next_step_answer']) == strtolower($_POST['_current_answer']) ) {
+	      // Inserting the time taken by the team in db also
+	      $timeTaken = null;
+	      if ( isset($_POST['_time_taken']) ) {
+	        $timeTaken = $_POST['_time_taken'];
+	      }
+
+	      $gameLevelRes = $this->manageGameLevel(
+					$_POST['_current_team_id'],
+					$_POST['_current_game_id'],
+					$playit_team_created_by,
+					$_POST['_current_level_id'],
+					$timeTaken,
+					1
+				);
+
+	      if ($gameLevelRes) {
+	        $nextLevel = add_query_arg( 'currentTeamId', $_POST['_current_team_id'], $this->getGameNextLevelLink($_POST['_current_level_id']) );
+	    		if ( !$nextLevel ) {
+	    			$nextLevel = $gameHomePage->guid;
+	    		}
+	        wp_redirect($nextLevel);
+	        exit;
+	      }
+	    }
+	    else {
+				// if (!empty($_GET['currentTeamId'])) {
+				// 	$nextLevel = add_query_arg( 'currentTeamId', $_GET['currentTeamId'], $this->getGameNextLevelLink($_POST['_current_level_id']) );
+				// }
+				// else {
+				// 	$nextLevel = add_query_arg( 'currentTeamId', 0, $this->getGameNextLevelLink($_POST['_current_level_id']) );
+				// }
+				$nextLevel = add_query_arg( NULL, NULL );
+				$urlWithErrMsg = add_query_arg( 'errmsg', "Answer Not Matched", $nextLevel );
+				wp_redirect( $urlWithErrMsg );
+				exit;
+	    }
+	  }
+
 	}
 
 	public function manageTeam($teamName, $memberEmails, $gameId, $createdBy) {
 		global $table_prefix, $wpdb;
 		$tblname = $table_prefix . 'gm_teams';
-		
+
 		// Checking the attribute value in db
 		$row = $wpdb->get_row( "SELECT * FROM $tblname WHERE game_id = $gameId AND created_by=$createdBy", ARRAY_A );
 
 		/*if ( is_array($row) && count($row) > 0 ) {
 	    	$sql = "UPDATE $tblname SET team_name='$teamName', members_email='$memberEmails' WHERE game_id = $gameId AND created_by=$createdBy";
-		} 
+		}
 		else {*/
 			$sql = "INSERT INTO $tblname (team_name, members_email, game_id, created_by) VALUES ('$teamName', '$memberEmails', $gameId, $createdBy)";
 		// }
 		return $wpdb->query($sql);
 	}
-	
+
 	/**
 	* Returning the games associated with the current logged in user
 	**/
@@ -407,13 +520,13 @@ class Play_It_Game_Public {
 		// 	'productid' => 'current'
 		// ), $atts );
 
-		// if( !is_user_logged_in() ) {			
+		// if( !is_user_logged_in() ) {
 		// 	return;
 		// }
 		// else {
 		// 	$html = "";
 		// 	$html .= "<p>Your Games</p>";
-		// 	$currentUserId = get_current_user_id();	
+		// 	$currentUserId = get_current_user_id();
 		// 	$userGames = $this->getUserTeamsById( $currentUserId );
 		// 	if ( is_array($userGames) && count($userGames) > 0 ) {
 		// 		$html .= '<table>
@@ -434,9 +547,9 @@ class Play_It_Game_Public {
 		// 				$html .= '<p></p>';
 		// 			}
 		// 		}
-		// 		$html .= '</table>';				
+		// 		$html .= '</table>';
 		// 	}
-			
+
 		// 	return $html;
 		// }
 	}
@@ -452,10 +565,10 @@ class Play_It_Game_Public {
 	public function getAllTeams( $gamesId ) {
 		global $wpdb;
 		$gamesTable = $wpdb->prefix . 'gm_games';
-		$teamsTable = $wpdb->prefix . 'gm_teams';		
-		$postsTable = $wpdb->prefix . 'posts';		
-		$sql = "SELECT *, 
-		(SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as total_time_taken, 
+		$teamsTable = $wpdb->prefix . 'gm_teams';
+		$postsTable = $wpdb->prefix . 'posts';
+		$sql = "SELECT *,
+		(SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as total_time_taken,
 		(SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as clue_seconds,
 		(
 			((SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish')/((SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) + (SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1)))
@@ -465,8 +578,8 @@ class Play_It_Game_Public {
 				((SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1)*3600) - ((SELECT SUM(time_taken) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) + (SELECT SUM(clue_seconds) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1))
 			)
 		) as total_score,
-		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels, 
-		(SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish') as total_levels, 
+		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id AND is_cleared = 1) as cleared_levels,
+		(SELECT COUNT(ID) FROM $postsTable WHERE post_parent = t.game_id AND post_type = 'page' AND post_status = 'publish') as total_levels,
 		(SELECT COUNT(level_id) FROM $gamesTable WHERE game_id = t.game_id AND team_id = t.id) as total_levels_old
 		FROM $teamsTable as t WHERE game_id = $gamesId ORDER BY cleared_levels DESC, total_time_taken ASC";
 		// $sql = "SELECT * FROM $tblname WHERE game_id = $gamesId";
@@ -482,11 +595,11 @@ class Play_It_Game_Public {
 
 	public function updateEmailInTeam( $emails, $teamId ) {
 		global $wpdb;
-		$tblname = $wpdb->prefix . 'gm_teams';		
+		$tblname = $wpdb->prefix . 'gm_teams';
 		return $wpdb->query( "UPDATE $tblname SET members_email='$emails' WHERE id = $teamId" );
 	}
 
-	public function getUserTeamsById( $userId ) {		
+	public function getUserTeamsById( $userId ) {
 		global $wpdb;
 		$gamesId = array();
 		$currentUser = get_userdata($userId);
@@ -509,7 +622,7 @@ class Play_It_Game_Public {
 	}
 
 	public function getUserTeamId( $userId ) {
-		$userTeams = $this->getUserTeamsById( $userId );		
+		$userTeams = $this->getUserTeamsById( $userId );
 		$teamIds = array();
 		if ( is_array($userTeams) && count($userTeams) > 0 ) {
 			foreach ($userTeams as $i => $userTeam) {
@@ -537,15 +650,15 @@ class Play_It_Game_Public {
 		global $table_prefix, $wpdb;
 		// $time_taken = time();
 		$tblname = $table_prefix . 'gm_games';
-		
+
 		// Checking the attribute value in db
 		// $row = $this->getUserGameLevel($user_id, $level_id);
 		$row = $this->getLevelInfo( $team_id, $level_id );
 
 		if ( is_array($row) && count($row) > 0 ) {
 	    	$sql = "UPDATE $tblname SET team_id=$team_id, game_id=$game_id, level_id=$level_id, user_id=$user_id, time_taken='$time_taken', is_cleared=$is_cleared WHERE level_id=$level_id AND user_id=$user_id AND team_id=$team_id";
-		} 
-		else {			
+		}
+		else {
 			/**
 			* Generating the query to insert game with all its levels
 			**/
@@ -562,7 +675,7 @@ class Play_It_Game_Public {
 						$vals .= "($team_id, $game_id, $lId, $user_id, $is_cleared, '$time_taken')";
 					} else {
 						$vals .= "($team_id, $game_id, $lId, $user_id, 0, 0)";
-					}									
+					}
 					$counter++;
 				}
 			}
@@ -574,17 +687,17 @@ class Play_It_Game_Public {
 	}
 
 	public function next_step_form_cb( $atts ) {
-		global $post;		
+		global $post;
 
 		$attributes = shortcode_atts( array(
 			'answer' => '',
 			'css_classes' => ''
 		), $atts );
-		
+
 		$errorMessage = "";
 
 		// #1: Getting the current user id
-		$currentUserId = get_current_user_id();				
+		$currentUserId = get_current_user_id();
 
 		/**
 		* #2: Getting the game home page info
@@ -603,20 +716,24 @@ class Play_It_Game_Public {
 		}
 
 		/**
-		* #3: If user doesn't belongs to any team then redirect it to game page
+		* #3: If current game is team game or not and user doesn't belongs to any team
+		* then redirect it to game page
 		**/
+		$isTeamGame = get_post_meta( $gameHomePage->ID, 'is_team_game', true );
 		$currentTeamId = 0;
-		if (!empty($_GET['currentTeamId'])) {
-			$currentTeamId = $_GET['currentTeamId'];
-			$teamInfo = $this->getTeamById( $currentTeamId );
-			if ( empty($teamInfo) ) {
-				return '<div class="teamnotexists '.$attributes['css_classes'].'">The team you selected doesn\'t exists <a href="'.$gameHomePage->guid.'">click here</a> to go to game page</div>';	
+		if ( $isTeamGame && $isTeamGame !== "false" ) {
+			if (!empty($_GET['currentTeamId'])) {
+				$currentTeamId = $_GET['currentTeamId'];
+				$teamInfo = $this->getTeamById( $currentTeamId );
+				if ( empty($teamInfo) ) {
+					return '<div class="teamnotexists '.$attributes['css_classes'].'">The team you selected doesn\'t exists <a href="'.$gameHomePage->guid.'">click here</a> to go to game page</div>';
+				}
 			}
-		}
-		else {
-			// wp_redirect($gameHomePage->guid);
-			// exit;
-			return '<div class="chooseteam '.$attributes['css_classes'].'">Please choose a team</div>';
+			else {
+				// wp_redirect($gameHomePage->guid);
+				// exit;
+				return '<div class="chooseteam '.$attributes['css_classes'].'">Please choose a team</div>';
+			}
 		}
 
 		// // #3: Getting All Levels
@@ -628,54 +745,27 @@ class Play_It_Game_Public {
 		// $nextLevel = $this->get_next($allLevels, $post->ID);
 
 		$nextLevel = add_query_arg( 'currentTeamId', $currentTeamId, $this->getGameNextLevelLink( $post->ID ));
+
 		if ( !$nextLevel ) {
 			$nextLevel = $gameHomePage->guid;
 		}
 
 		/**
-		* #5: Process to save data in db after user answer a level, here we are also 
+		* #5: Process to save data in db after user answer a level, here we are also
 		* checking if user is on page and so that it will not affect other pages.
 		**/
 		if ( 'page' === get_post_type() AND is_singular() ) {
-
-			/**
-			* #6: If current is page is game level then only perform db operations
-			**/
-			if ( !empty( $post->post_parent ) ) {
-				if ( !empty($_POST['_next_step_answer']) ) {
-					// 45HH
-					if ( strtolower($_POST['_next_step_answer']) == strtolower($attributes['answer']) ) {
-						
-						// Inserting the time taken by the team in db also
-						$timeTaken = null;
-						if ( isset($_POST['_time_taken']) ) {
-							$timeTaken = $_POST['_time_taken'];
-						}
-
-						$gameLevelRes = $this->manageGameLevel($currentTeamId, $post->post_parent, $currentUserId, $post->ID, $timeTaken, 1);
-
-						if ($gameLevelRes) {							
-							wp_redirect($nextLevel);
-							exit;
-						}
-					}
-					else {
-						$errorMessage = "<p style='color:red'>Answer Not Matched</p>";
-					}			
-				}
-			}
-
 			/**
 			* #7: Checking if current user has already cleared the level or not
 			**/
-			$isCurrentLevelCleared = false;			
+			$isCurrentLevelCleared = false;
 			// $userLevelInfo = $this->getUserGameLevel($currentUserId, $post->ID);
 			$userLevelInfo = $this->getLevelInfo( $currentTeamId, $post->ID );
 			if ( is_array($userLevelInfo) && count($userLevelInfo) > 0 ) {
 				// Level Cleared
 				if (isset($userLevelInfo['is_cleared']) && $userLevelInfo['is_cleared'] == 1 ) {
-					$isCurrentLevelCleared = true;					
-				}				
+					$isCurrentLevelCleared = true;
+				}
 			}
 		}
 
@@ -686,9 +776,18 @@ class Play_It_Game_Public {
 			return '<div class="cleared '.$attributes['css_classes'].'">This level has been solved <a href="'.$nextLevel.'">click here</a> to go next level</div>';
 		}
 		else {
+
+			if ( !empty($_GET['errmsg']) ) {
+				$errorMessage = "<p style='color:red'>".$_GET['errmsg']."</p>";
+			}
+
 			return '<div class="'.$attributes['css_classes'].'">
 				<form method="post" action="">
 					<input type="hidden" value="0" name="_time_taken" />
+					<input type="hidden" value="'.$post->ID.'" name="_current_level_id" />
+					<input type="hidden" value="'.$post->post_parent.'" name="_current_game_id" />
+					<input type="hidden" value="'.$currentTeamId.'" name="_current_team_id" />
+					<input type="hidden" value="'.$attributes['answer'].'" name="_current_answer" />
 					<input type="text" name="_next_step_answer" />
 					<input type="submit" value="Submit" />
 				</form>'.$errorMessage.'
@@ -707,7 +806,7 @@ class Play_It_Game_Public {
 			'hours_font_color' => '#fff',
 			'minutes_font_color' => '#fff',
 			'seconds_font_color' => '#fff',
-			'css_classes' => '',			
+			'css_classes' => '',
 		), $atts );
 
 		return '<div class="timer '.$attributes['css_classes'].'"><div class="timerwrapper">
@@ -733,13 +832,13 @@ class Play_It_Game_Public {
 
 	/**
 	* Checking if $pageId has parent or not if it has parent then getting its siblings else returning all child pages
-	* 
+	*
 	* $id can be gameid or level id
 	**/
 	public function getOtherLevels( $pageId ) {
 		$levelsWithUrl = array();
 		$levelInfo = get_post( $pageId );
-		
+
 		// Implies that it is level
 		if ( isset($levelInfo->post_parent) && $levelInfo->post_parent != 0 ) {
 			$gameLevels = get_pages(array(
@@ -751,10 +850,10 @@ class Play_It_Game_Public {
 			$gameLevels = get_pages(array(
 				'child_of' => $pageId,
 				'sort_column' => 'menu_order'
-			));			
+			));
 		}
 
-		foreach ($gameLevels as $id => $level) {			
+		foreach ($gameLevels as $id => $level) {
 			$levelsWithUrl[$level->ID] = get_the_permalink($level->ID);
 		}
 
@@ -774,12 +873,12 @@ class Play_It_Game_Public {
 		// $attributes = shortcode_atts( array(
 		// 	'productid' => 'current'
 		// ), $atts );
-		
+
 		$allPages = get_pages(array(
 			'child_of' => 0,
 			'echo' => false,
 			'meta_key' => 'is_game_home_page',
-			'meta_value' => 'true'	
+			'meta_value' => 'true'
 		));
 
 		$html = '';
@@ -801,8 +900,8 @@ class Play_It_Game_Public {
 			$html .= '</div>';
 			$html .= '</div>';
 		}
-		
-		return $html;	
+
+		return $html;
 	}
 
 	public function getGameNextLevelLink( $gameId ) {
@@ -813,7 +912,7 @@ class Play_It_Game_Public {
 			return array_shift(array_values($allLevels));
 			// var_dump(first($allLevels));
 			// return $allLevels[0];
-		} 
+		}
 		else {
 			return $nextLevel;
 		}
@@ -826,17 +925,17 @@ class Play_It_Game_Public {
 
 		// if ( is_page() ) {
 		// 	// $initialCookieValue = null;
-		
+
 		// 	// if ( is_null($currentUserLevelInfo) ) {
-		// 	// 	// $initialCookieValue = htmlentities("00:00:00");		
+		// 	// 	// $initialCookieValue = htmlentities("00:00:00");
 		// 	// 	setcookie("_timepassed", htmlentities("00:00:00"), strtotime( '+7 days' ));
-		// 	// } 
+		// 	// }
 		// 	// else {
-		// 	// 	// $initialCookieValue = htmlentities($currentUserLevelInfo['user_spent_time']);		
+		// 	// 	// $initialCookieValue = htmlentities($currentUserLevelInfo['user_spent_time']);
 		// 	// 	setcookie("_timepassed", htmlentities($currentUserLevelInfo['user_spent_time']), strtotime( '+7 days' ));
 		// 	// }
 		// }
-		
+
 	}
 
 	public function show_clue_cb( $atts ) {
@@ -845,7 +944,7 @@ class Play_It_Game_Public {
 			'image_url' => null,
 			'label' => "Clue",
 			'text' => '',
-			'css_classes' => '',			
+			'css_classes' => '',
 		), $atts );
 
 		$secondsToAdd = $attributes['seconds_to_add'];
@@ -880,7 +979,7 @@ class Play_It_Game_Public {
 			'redirect_url' => site_url()
 		), $atts );
 
-		return '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#join_game_by_code_modal">'.$attributes['label'].'</button>			
+		return '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#join_game_by_code_modal">'.$attributes['label'].'</button>
 			<div class="modal fade" id="join_game_by_code_modal" tabindex="-1" role="dialog" aria-labelledby="join_game_by_code_modal_label" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-centered" role="document">
 			    <div class="modal-content">
