@@ -101,7 +101,7 @@ class Play_It_Game_Admin {
 	}
 
 	public function login_redirect_cb() {
-		$user = wp_get_current_user();		
+		$user = wp_get_current_user();
 		if ( in_array( 'subscriber', (array) $user->roles ) ) {
 			return home_url( 'all-games' );
 		}
@@ -112,12 +112,12 @@ class Play_It_Game_Admin {
 
 	public function init_action_cb() {
 		$args = array(
-            'type' => 'string', 
+            'type' => 'string',
             'sanitize_callback' => 'sanitize_text_field',
             'default' => NULL,
         );
-    	register_setting( 'play_it_game_settings', 'all_games_page', $args ); 
-    	register_setting( 'play_it_game_settings', 'after_login_redirect', $args ); 
+    	register_setting( 'play_it_game_settings', 'all_games_page', $args );
+    	register_setting( 'play_it_game_settings', 'after_login_redirect', $args );
 	}
 
 	/**
@@ -128,13 +128,25 @@ class Play_It_Game_Admin {
 		$menu_name 	= 'Play-It Settings';
 		$menu_main 	= 'Play-It';
 
-		add_menu_page($menu_name, $menu_main, 'manage_options', $menu_slug, '',plugin_dir_url(__FILE__).'assets/img/logo-wp.png', 57);	
+		add_menu_page($menu_name, $menu_main, 'manage_options', $menu_slug, '',plugin_dir_url(__FILE__).'assets/img/logo-wp.png', 57);
 
 		add_submenu_page( $menu_slug, $menu_name, $menu_main, 'manage_options', $menu_slug, array($this, 'infi_settings'));
+
+		add_submenu_page( $menu_slug, $menu_name, 'Setup Documentation', 'manage_options', 'setup_documentation', array($this, 'setup_documentation'));
+
+		add_submenu_page( $menu_slug, $menu_name, 'Private Game Setup', 'manage_options', 'private_game_setup_documentation', array($this, 'private_game_setup_documentation'));
 	}
 
 	public function infi_settings() {
 		include "partials/play-it-game-admin-display.php";
+	}
+
+	public function setup_documentation() {
+		include "partials/play-it-game-admin-doc.php";
+	}
+
+	public function private_game_setup_documentation() {
+		include "partials/play-it-game-private-game-doc.php";
 	}
 
 	public function getLevelInfo( $teamId, $levelId, $userId ) {
@@ -146,13 +158,13 @@ class Play_It_Game_Admin {
 
 	/**
 	* Checking if $pageId has parent or not if it has parent then getting its siblings else returning all child pages
-	* 
+	*
 	* $id can be gameid or level id
 	**/
 	public function getOtherLevels( $pageId ) {
 		$levelsWithUrl = array();
 		$levelInfo = get_post( $pageId );
-		
+
 		// Implies that it is level
 		if ( isset($levelInfo->post_parent) && $levelInfo->post_parent != 0 ) {
 			$gameLevels = get_pages(array(
@@ -162,11 +174,11 @@ class Play_It_Game_Admin {
 		else {
 			$gameLevels = get_pages(array(
 				'child_of' => $pageId
-			));			
+			));
 		}
 
 		foreach ($gameLevels as $id => $level) {
-			$levelsWithUrl[$level->ID] = $level->guid;				
+			$levelsWithUrl[$level->ID] = $level->guid;
 		}
 
 		return $levelsWithUrl;
@@ -176,13 +188,13 @@ class Play_It_Game_Admin {
 		global $table_prefix, $wpdb;
 		// $time_taken = time();
 		$tblname = $table_prefix . 'gm_games';
-		
+
 		// Checking the attribute value in db
 		$row = $this->getLevelInfo( $team_id, $level_id, $user_id );
 
 		if ( is_array($row) && count($row) > 0 ) {
 	    	$sql = "UPDATE $tblname SET clue_seconds=$clue_seconds WHERE level_id=$level_id AND user_id=$user_id AND team_id=$team_id";
-		} 
+		}
 		else {
 			/**
 			* Generating the query to insert game with all its levels
@@ -200,14 +212,14 @@ class Play_It_Game_Admin {
 						$vals .= "($team_id, $game_id, $user_id, $lId, 0, 0, $clue_seconds)";
 					} else {
 						$vals .= "($team_id, $game_id, $user_id, $lId, 0, 0, 0)";
-					}									
+					}
 					$counter++;
 				}
 			}
 
 			$sql = "INSERT INTO $tblname (team_id, game_id, user_id, level_id, time_taken, is_cleared, clue_seconds) VALUES ".$vals;
 		}
-		
+
 		return $wpdb->query($sql);
 	}
 
@@ -215,8 +227,8 @@ class Play_It_Game_Admin {
 		if( isset($_REQUEST['secondsToAdd']) && isset($_REQUEST['current_level_id']) && isset($_REQUEST['current_team_id']) && isset($_REQUEST['current_user_id']) && isset($_REQUEST['current_game_id']) ) {
 			$gameLevelRes = $this->manageGameLevel($_REQUEST['current_team_id'], $_REQUEST['current_game_id'], $_REQUEST['current_user_id'], $_REQUEST['current_level_id'], $_REQUEST['secondsToAdd']
 			);
-			echo json_encode($gameLevelRes);			
-		}		
+			echo json_encode($gameLevelRes);
+		}
 		exit;
 	}
 
@@ -225,6 +237,7 @@ class Play_It_Game_Admin {
 			update_post_meta($post_id, 'score_multipler', 10);
 			update_post_meta($post_id, 'code_to_join_team', "");
 			update_post_meta($post_id, 'is_game_home_page', "false");
+			update_post_meta($post_id, 'is_team_game', "false");
 
 			if ( !empty($_POST['score_multipler']) ) {
 				update_post_meta($post_id, 'score_multipler', $_POST['score_multipler']);
@@ -235,6 +248,9 @@ class Play_It_Game_Admin {
 			if ( !empty($_POST['is_game_home_page']) ) {
 				update_post_meta($post_id, 'is_game_home_page', "true");
 			}
+			if ( !empty($_POST['is_team_game']) ) {
+				update_post_meta($post_id, 'is_team_game', "true");
+			}
 		}
 	}
 
@@ -242,11 +258,12 @@ class Play_It_Game_Admin {
 		add_meta_box( 'game-page-setting-box', 'Game Page Settings', array($this, 'rm_meta_box_callback'), 'page', 'advanced', 'high' );
 	}
 
-	public function rm_meta_box_callback( $post ) {		
+	public function rm_meta_box_callback( $post ) {
 		if ($post->post_parent == 0):
 		    $joiningCode = get_post_meta( $post->ID, 'code_to_join_team', true );
 		    $isGameHomePage = get_post_meta( $post->ID, 'is_game_home_page', true );
 		    $scoreMultipler = get_post_meta( $post->ID, 'score_multipler', true );
+				$isTeamGame = get_post_meta( $post->ID, 'is_team_game', true );
 		    if (!$scoreMultipler) {
 		    	$scoreMultipler = 10;
 		    }
@@ -256,11 +273,15 @@ class Play_It_Game_Admin {
 		    		<td><label for="is_game_home_page">Is this Game Main Page?</label></td>
 		    		<td><input type="checkbox" name="is_game_home_page" id="is_game_home_page" value="true" <?php echo ($isGameHomePage == "true" ? "checked" : "") ?> /></td>
 		    	</tr>
+					<tr>
+		    		<td><label for="is_team_game">Is Team Game?</label></td>
+		    		<td><input type="checkbox" name="is_team_game" id="is_team_game" value="true" <?php echo ($isTeamGame == "true" ? "checked" : "") ?> /></td>
+		    	</tr>
 		    	<tr>
 		    		<td><label for="score_multipler">Score Multiplier</label></td>
 		    		<td><input type="number" name="score_multipler" id="score_multipler" value="<?php echo esc_attr($scoreMultipler) ?>" /></td>
 		    	</tr>
-		    	<tr>
+		    	<tr style="display:none">
 		    		<td><label for="title_field">Code To Join Team</label></td>
 		    		<td><input type="text" name="code_to_join_team" id="title_field" value="<?php echo esc_attr($joiningCode) ?>" /><small>Leave it empty to disable</small></td>
 		    	</tr>
@@ -270,32 +291,37 @@ class Play_It_Game_Admin {
 	}
 
 	public function check_user_name_cb() {
-		if (!empty($_REQUEST['user_name'])) {
-			$username = $_REQUEST['user_name'];
-			$redirectUrl = $_REQUEST['redirect_url'];
-			$gameId = $_REQUEST['game_id'];
-			$user 	= get_user_by('login', $username);
-
-			if ( !$user ) {
-				$emailForGame = "$username@".time().".com";
-				$userPassword = time();
-				$userId = wp_create_user( $username, $userPassword, $emailForGame);					
-			} else {					
-				$userId = $user->ID;
-			}
-
-			if ($userId) {
-				wp_clear_auth_cookie();
-				wp_set_current_user ( $userId );
-				wp_set_auth_cookie  ( $userId );
-				$res = array("status" => true, "redirect_url" => $redirectUrl );
-			} else {
-				$res = array("status" => false, "msg" => "either userPassword or emailForGame is empty" );
-			}
-		} 
+		if ( !is_user_logged_in() ) {
+			$res = array("status" => false, "msg" => "user already logged in" );			
+		}
 		else {
-			$res = array("status" => false, "msg" => "username is missing" );
-		}		
+			if (!empty($_REQUEST['user_name'])) {
+				$username = $_REQUEST['user_name'];
+				$redirectUrl = $_REQUEST['redirect_url'];
+				$gameId = $_REQUEST['game_id'];
+				$user 	= get_user_by('login', $username);
+
+				if ( !$user ) {
+					$emailForGame = "$username@".time().".com";
+					$userPassword = time();
+					$userId = wp_create_user( $username, $userPassword, $emailForGame);
+				} else {
+					$userId = $user->ID;
+				}
+
+				if ($userId) {
+					wp_clear_auth_cookie();
+					wp_set_current_user ( $userId );
+					wp_set_auth_cookie  ( $userId );
+					$res = array("status" => true, "redirect_url" => $redirectUrl );
+				} else {
+					$res = array("status" => false, "msg" => "either userPassword or emailForGame is empty" );
+				}
+			}
+			else {
+				$res = array("status" => false, "msg" => "username is missing" );
+			}
+		}
 		echo json_encode($res);
 		die;
 	}
