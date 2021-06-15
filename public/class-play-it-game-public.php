@@ -91,7 +91,7 @@ class Play_It_Game_Public {
 
 		if ( $post && $post->ID ) {
 			$isTeamGame = get_post_meta( $post->ID, 'is_team_game', true );
-			// if ( $isTeamGame && $isTeamGame == "true" && !empty($_GET['currentTeamId']) ) {			
+			// if ( $isTeamGame && $isTeamGame == "true" && !empty($_GET['currentTeamId']) ) {
 				wp_localize_script( $this->plugin_name.'play_it_js', 'current_env', array(
 					"id" => get_current_user_id().'_'.$post->ID,
 					"is_team_game" => $isTeamGame,
@@ -113,7 +113,6 @@ class Play_It_Game_Public {
 			// 		"ajax_url" => admin_url('admin-ajax.php')
 			// 	));
 			// }
-
 		}
 
 	}
@@ -238,10 +237,10 @@ class Play_It_Game_Public {
 			**/
 			$html = "";
 			$all_games_page_id = get_option('all_games_page');
-		    if ($all_games_page_id ) {
+	    if ($all_games_page_id ) {
 				$allGamePage = get_post($all_games_page_id);
 				$html .= "<div style='text-align:right'><a style='color: #48bb48;' href='".$allGamePage->guid."'>View All Games</a></div>";
-		    }
+	    }
 
 			if ( !empty($_GET['already_emails']) ) {
 				$html .= "<div style='color: #f52f2f;font-style: italic;'>".$_GET['already_emails']." already associated with other teams</div>";
@@ -285,6 +284,7 @@ class Play_It_Game_Public {
 				if (!$isSubLevel) {					
 					$html .= "<th style='background-color:".$atts['heading_background_color']."'>".$atts['actions_label']."</th>";
 				}
+
 				$html .= "</thead>";
 
 				foreach ($teams as $i => $team) {
@@ -333,6 +333,7 @@ class Play_It_Game_Public {
 					if (!$isSubLevel) {
 						$html .= '<td>'.$buttons.'</td>';
 					}
+
 					$html .= '</tr>';
 				}
 				$html .= "</table><br/>";
