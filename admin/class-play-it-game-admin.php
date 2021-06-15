@@ -291,7 +291,7 @@ class Play_It_Game_Admin {
 	}
 
 	public function check_user_name_cb() {
-		if ( !is_user_logged_in() ) {
+		if ( is_user_logged_in() ) {
 			$res = array("status" => false, "msg" => "user already logged in" );			
 		}
 		else {
