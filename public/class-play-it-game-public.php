@@ -274,7 +274,7 @@ class Play_It_Game_Public {
 				$html .= "<thead>";
 				$html .= "<th style='background-color:".$atts['heading_background_color']."'>".$atts['sno_label']."</th>";
 				if ($isTeamGame) {
-					$html .= "<th>".$atts['teamname_label']."</th>";
+					$html .= "<th style='background-color:".$atts['heading_background_color']."'>".$atts['teamname_label']."</th>";
 				}
 				$html .= "<th style='background-color:".$atts['heading_background_color']."' width='100'>".$atts['timetaken_label']."</th>";
 				$html .= "<th style='background-color:".$atts['heading_background_color']."' width='100'>".$atts['clues_label']."</th>";
@@ -356,10 +356,12 @@ class Play_It_Game_Public {
 			'form_heading' => 'Create Team:',
 			'css_classes' => '',
 			'email_required' => "no",
+			'button_background_color' => "" ,
+			'font_family' => "inherit"
 		), $atts );
 
 		$str  = '<div class="form-container '.$attributes['css_classes'].'">';
-		$str .= '<h2>'.$attributes['form_heading'].'</h2>';
+		$str .= '<h2 style="font-family:'.$attributes['font_family'].'">'.$attributes['form_heading'].'</h2>';
 
 		/**
 		* #2: Check if current game is team game or not
@@ -371,18 +373,18 @@ class Play_It_Game_Public {
 			**/
 			$str .= '<form id="emailFrm" method="post">';
 			$str .= '<p>
-				<label for="playit_team_name">Team Name</label>
-				<input type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
+				<label style="font-family:'.$attributes['font_family'].'" for="playit_team_name">Team Name</label>
+				<input style="font-family:'.$attributes['font_family'].'" type="text" id="playit_team_name" name="playit_team_name" placeholder="Your name..">
 			</p>';
 			if($attributes['email_required'] == "yes") {
 				$str .= '<p>
-					<label>Member Emails:</label>
-					<input type="text" id="example_emailBS" name="playit_member_emails">
+					<label style="font-family:'.$attributes['font_family'].'">Member Emails:</label>
+					<input style="font-family:'.$attributes['font_family'].'" type="text" id="example_emailBS" name="playit_member_emails">
 				</p>';
 			}
 			$str .= '<p>
 				<input type="hidden" name="playit_current_page_id" value="'.$post->ID.'">
-				<input type="submit" value="Submit">
+				<input style="background-color:'.$attributes['button_background_color'].';border: 1px solid '.$attributes['button_background_color'].';font-family:'.$attributes['font_family'].'" type="submit" value="Submit">
 			</p>';
 			$str .= '</form>';
 		}
@@ -741,7 +743,9 @@ class Play_It_Game_Public {
 
 		$attributes = shortcode_atts( array(
 			'answer' => '',
-			'css_classes' => ''
+			'css_classes' => '',
+			'button_background_color' => "#4CAF50",
+			'font_family' => ""
 		), $atts );
 
 		$errorMessage = "";
@@ -839,7 +843,7 @@ class Play_It_Game_Public {
 					<input type="hidden" value="'.$currentTeamId.'" name="_current_team_id" />
 					<input type="hidden" value="'.$attributes['answer'].'" name="_current_answer" />
 					<input type="text" name="_next_step_answer" />
-					<input type="submit" value="Submit" />
+					<input style="background-color:'.$attributes['button_background_color'].';border: 1px solid '.$attributes['button_background_color'].';font-family:'.$attributes['font_family'].'" type="submit" value="Submit" />
 				</form>'.$errorMessage.'
 			</div>';
 		}
@@ -995,12 +999,15 @@ class Play_It_Game_Public {
 			'label' => "Clue",
 			'text' => '',
 			'css_classes' => '',
+			'text_color' => 'red',
+			'background_color' => "unset" ,
+			'font_family' => "inherit"
 		), $atts );
 
 		$secondsToAdd = $attributes['seconds_to_add'];
 		if ($secondsToAdd && $secondsToAdd > 0) {
 			$str = "<div class='cluewrapper ".$attributes['css_classes']."'>";
-				$str .= "<a data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>".$attributes['label']."</a>";
+				$str .= "<a style='background-color:".$attributes['background_color'].";color:".$attributes['text_color'].";font-family:".$attributes['font_family']."' data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>".$attributes['label']."</a>";
 				$str .= "<div class='clue' style='display:none'>";
 					if (!empty($attributes['image_url'])) {
 						$str .= "<div class='imagewrapper'>
@@ -1026,10 +1033,17 @@ class Play_It_Game_Public {
 			'submit_button_label' => "Submit",
 			'close_button_label' => "Close",
 			'modal_title' => "Join Team By Code",
-			'redirect_url' => site_url()
+			'redirect_url' => site_url(),
+			'background_color' => "",
+			'font_family' => "inherit"
 		), $atts );
 
-		return '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#join_game_by_code_modal">'.$attributes['label'].'</button>
+		return '<button type="button" 
+				class="btn btn-primary" 
+				data-toggle="modal" 
+				data-target="#join_game_by_code_modal" 
+				style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'"
+			>'.$attributes['label'].'</button>
 			<div class="modal fade" id="join_game_by_code_modal" tabindex="-1" role="dialog" aria-labelledby="join_game_by_code_modal_label" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-centered" role="document">
 			    <div class="modal-content">
