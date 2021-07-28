@@ -699,6 +699,9 @@ class Play_It_Game_Public {
 	}
 
 	public function manageGameLevel($team_id, $game_id, $user_id, $level_id, $time_taken=null, $is_cleared=0) {
+		// // If current game is team game or not		
+		// $isTeamGame = get_post_meta( $game_id, 'is_team_game', true );
+		
 		global $table_prefix, $wpdb;
 		// $time_taken = time();
 		$tblname = $table_prefix . 'gm_games';
@@ -708,7 +711,13 @@ class Play_It_Game_Public {
 		$row = $this->getLevelInfo( $team_id, $level_id );
 
 		if ( is_array($row) && count($row) > 0 ) {
-	    	$sql = "UPDATE $tblname SET team_id=$team_id, game_id=$game_id, level_id=$level_id, user_id=$user_id, time_taken='$time_taken', is_cleared=$is_cleared WHERE level_id=$level_id AND user_id=$user_id AND team_id=$team_id";
+				/** BUG1
+				* Suppose if user1 of team1 was playing a game and after sometime user2 of team1 submits an answer
+				* then answer is not updating in db because the update query is not able to find user_id of user2 
+				* so I am removing the user_id check from update query
+				**/
+	    	// $sql = "UPDATE $tblname SET team_id=$team_id, game_id=$game_id, level_id=$level_id, user_id=$user_id, time_taken='$time_taken', is_cleared=$is_cleared WHERE level_id=$level_id AND user_id=$user_id AND team_id=$team_id";
+				$sql = "UPDATE $tblname SET team_id=$team_id, game_id=$game_id, level_id=$level_id, user_id=$user_id, time_taken='$time_taken', is_cleared=$is_cleared WHERE level_id=$level_id AND team_id=$team_id";
 		}
 		else {
 			/**
@@ -733,8 +742,7 @@ class Play_It_Game_Public {
 			}
 
 			$sql = "INSERT INTO $tblname (team_id, game_id, level_id, user_id, is_cleared, time_taken) VALUES ".$vals;
-		}
-
+		}		
 		return $wpdb->query($sql);
 	}
 
