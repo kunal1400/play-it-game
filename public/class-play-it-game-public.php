@@ -294,10 +294,20 @@ class Play_It_Game_Public {
 						$memberEmails = explode(",", $team['members_email']);
 						foreach ($memberEmails as $j => $email) {
 							$memberInfo = get_user_by('email', $email);
+							$valueToPush = "";
 							if ( !empty($memberInfo->data->user_login) ) {
-								$memberUserNames[] = $memberInfo->data->user_login;
-							} else {
-								$memberUserNames[] = $email;
+								$valueToPush = $memberInfo->data->user_login;
+							} 
+							else {
+								$valueToPush = $email;
+							}
+
+							// If admin is login then show option to remove user
+							if( current_user_can('editor') || current_user_can('administrator') ) {
+								$memberUserNames[] = '<span>'.$valueToPush.'<span class="js-removeUserFromTeamSpan rufts" data-teamId="'.$team['id'].'" data-email="'.$email.'">x</span></span>';
+							}
+							else {
+								$memberUserNames[] = $valueToPush;								
 							}
 						}
 					}
@@ -349,6 +359,7 @@ class Play_It_Game_Public {
 
 	public function create_team_cb( $atts ) {
 		global $post;
+		global $wp;
 
 		/**
 		* #1: Getting shortcode attributes
@@ -412,6 +423,7 @@ class Play_It_Game_Public {
 
 	public function init_actions() {
 		global $post;
+		global $wp;
 
 		// #1: Getting the current user info
 		$playit_team_created_by = get_current_user_id();
@@ -537,6 +549,34 @@ class Play_It_Game_Public {
 	    }
 	  }
 
+	  	/**
+		* Remove the email from team
+		**/
+	  	if ( !empty($_GET['action']) && $_GET['action'] == 'remove_team_member' && !empty($_GET['member_email']) && !empty($_GET['teamId']) ) {
+	  		$member_email = $_GET['member_email'];
+	  		$teamid = $_GET['teamId'];
+
+	  		// Getting the team by id
+	  		$teamInfo = $this->getTeamById($teamid);
+
+	  		// If member emails are present then perform next actions
+	  		if ( is_array($teamInfo) && !empty($teamInfo['members_email']) ) {
+	  			$newMembersEmail = array();
+	  			foreach (explode(",", $teamInfo['members_email']) as $i => $email) {
+	  				if ($email !== $member_email) {
+	  					$newMembersEmail[] = $email;
+	  				}
+	  			}
+
+	  			// Update email response	  			
+	  			$updateEmailResponse = $this->updateEmailInTeam( implode(",", $newMembersEmail), $teamid );
+	  	// 		echo '<pre>';
+	  	// 		print_r($wp);
+	  	// 		echo '</pre>';
+				// // wp_redirect( $wp->request );
+				// exit;  			
+	  		}
+	  	}
 	}
 
 	public function manageTeam($teamName, $memberEmails, $gameId, $createdBy) {
@@ -636,7 +676,7 @@ class Play_It_Game_Public {
 		return $wpdb->get_row($sql, ARRAY_A);
 	}
 
-	public function updateEmailInTeam( $emails, $teamId ) {
+	public function updateEmailInTeam( $emails, $teamId ) {		
 		global $wpdb;
 		$tblname = $wpdb->prefix . 'gm_teams';
 		return $wpdb->query( "UPDATE $tblname SET members_email='$emails' WHERE id = $teamId" );

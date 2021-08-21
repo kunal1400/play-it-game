@@ -177,6 +177,14 @@ function applyCodeForGame() {
 	return false
 }
 
+function removeUserFromTeam(e){
+	let email = jQuery(e).attr("data-email")
+	let teamId = jQuery(e).attr("data-teamId")
+	console.log(email, teamId, "email, teamId")
+}
+
+
+
 jQuery(document).ready(function(){
   	jQuery.validator.addMethod("multiemail", function (value, element) {
         if (this.optional(element)) {
@@ -216,4 +224,12 @@ jQuery(document).ready(function(){
 
 	// jQuery(".timer")
 	setInterval(count, 1000)
+
+	jQuery(".js-removeUserFromTeamSpan").on("click", function() {
+		let email = jQuery(this).attr("data-email")
+		let teamId = jQuery(this).attr("data-teamId")
+		if ( email && teamId ) {
+			window.location.href = window.location.href+"?action=remove_team_member&member_email="+email+"&teamId="+teamId
+		}
+	})
 });
