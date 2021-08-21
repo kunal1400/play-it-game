@@ -279,7 +279,7 @@ class Play_It_Game_Admin {
 		    	</tr>
 		    	<tr>
 		    		<td><label for="score_multipler">Score Multiplier</label></td>
-		    		<td><input type="number" name="score_multipler" id="score_multipler" value="<?php echo esc_attr($scoreMultipler) ?>" /></td>
+		    		<td><input type="number" name="score_multipler" id="score_multipler" value="<?php echo esc_attr($scoreMultipler) ?>" /> <small><i>Smaller the value larger the score</i></small></td>
 		    	</tr>
 		    	<tr style="display:none">
 		    		<td><label for="title_field">Code To Join Team</label></td>

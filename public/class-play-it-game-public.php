@@ -189,6 +189,7 @@ class Play_It_Game_Public {
 			'actions_label' => 'Action',
 			'css_classes' => '',			
 			'heading_background_color' => 'green',
+			'actions_button_color' => '#555555',
 			'font_family' => 'inherit'
 		), $attributes );
 
@@ -237,10 +238,10 @@ class Play_It_Game_Public {
 			**/
 			$html = "";
 			$all_games_page_id = get_option('all_games_page');
-	    if ($all_games_page_id ) {
+		    if ($all_games_page_id ) {
 				$allGamePage = get_post($all_games_page_id);
 				$html .= "<div style='text-align:right'><a style='color: #48bb48;' href='".$allGamePage->guid."'>View All Games</a></div>";
-	    }
+		    }
 
 			if ( !empty($_GET['already_emails']) ) {
 				$html .= "<div style='color: #f52f2f;font-style: italic;'>".$_GET['already_emails']." already associated with other teams</div>";
@@ -315,7 +316,7 @@ class Play_It_Game_Public {
 						if ( !$nextLevelLink ) {
 							$nextLevelLink = $post->guid;
 						}
-						$buttons = '<a href="'.add_query_arg('currentTeamId', $team['id'], $nextLevelLink ).'" class="button button-black">Start Playing</a>';
+						$buttons = '<a style="background-color:'.$atts['actions_button_color'].';border: 1px solid '.$atts['actions_button_color'].';font-family:'.$atts['font_family'].'" href="'.add_query_arg('currentTeamId', $team['id'], $nextLevelLink ).'" class="button">Start Playing</a>';
 					} else {
 						$buttons = '-';
 					}
@@ -327,7 +328,7 @@ class Play_It_Game_Public {
 					}
 					$html .= '<td>'.$team['total_time_taken'].'</td>';
 					$html .= '<td>'.$team['clue_seconds'].'</td>';
-					$html .= '<td>'.round($team['total_score']/$scoreMultipler, 2).'</td>';
+					$html .= '<td>'.round($team['total_score']/$scoreMultipler, 0).'</td>';
 					$html .= '<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>';
 					$html .= '<td>'.implode(", ", $memberUserNames).'</td>';
 					if (!$isSubLevel) {
@@ -356,7 +357,7 @@ class Play_It_Game_Public {
 			'form_heading' => 'Create Team:',
 			'css_classes' => '',
 			'email_required' => "no",
-			'button_background_color' => "" ,
+			'button_background_color' => "#555555" ,
 			'font_family' => "inherit"
 		), $atts );
 
@@ -401,7 +402,7 @@ class Play_It_Game_Public {
 			if ( !empty($currentUserId) ) {
 				$userTeams = $this->getUserTeamsInGame( $post->ID, $currentUserId );
 				if ( is_array($userTeams) ) {
-					$str .= '<a href="'.add_query_arg('currentTeamId', $userTeams['id'], $nextLevelLink ).'" class="button button-black">Start Playing</a>';
+					$str .= '<a href="'.add_query_arg('currentTeamId', $userTeams['id'], $nextLevelLink ).'" style="background-color:'.$attributes['button_background_color'].';border: 1px solid '.$attributes['button_background_color'].';font-family:'.$attributes['font_family'].'" class="button">Start Playing</a>';
 				}
 			}
 		}
@@ -851,33 +852,42 @@ class Play_It_Game_Public {
 
 	public function show_timer_cb( $atts ) {
 		$attributes = shortcode_atts( array(
+			// labels attribute
 			'hours_label' => 'Hours',
 			'minutes_label' => 'Minutes',
 			'seconds_label' => 'Seconds',
+			// background color attributes
 			'hours_background_color' => '#cccccc9e',
 			'minutes_background_color' => '#cccccc9e',
 			'seconds_background_color' => '#cccccc9e',
+			// margins for hours, minutes and seconds
+			'hours_margin' => '1px 1px 1px 1px',
+			'minutes_margin' => '1px 1px 1px 1px',
+			'seconds_margin' => '1px 1px 1px 1px',
+			// Font color attributes
 			'hours_font_color' => '#fff',
 			'minutes_font_color' => '#fff',
 			'seconds_font_color' => '#fff',
+			// Css classes
 			'css_classes' => '',
+			// Paddings
+			'boxs_padding' => '20',
 		), $atts );
 
-		return '<div class="timer '.$attributes['css_classes'].'"><div class="timerwrapper">
-				<div class="container">
-					<div class="row">
-						<div class="col-md-4 col-sm-4 col-xs-4">
-							<div style="background-color:'.$attributes['hours_background_color'].';color:'.$attributes['hours_font_color'].'"
-							 class="h"><h1>00</h1><p>'.$attributes['hours_label'].'</p></div>
-						</div>
-						<div class="col-md-4 col-sm-4 col-xs-4">
-							<div style="background-color:'.$attributes['minutes_background_color'].';color:'.$attributes['minutes_font_color'].'"
-							 class="m"><h1>00</h1><p>'.$attributes['minutes_label'].'</p></div>
-						</div>
-						<div class="col-md-4 col-sm-4 col-xs-4">
-							<div style="background-color:'.$attributes['seconds_background_color'].';color:'.$attributes['seconds_font_color'].'"
-							 class="s"><h1>00</h1><p>'.$attributes['seconds_label'].'</p></div>
-						</div>
+		return '<div class="timer '.$attributes['css_classes'].'">
+			<div class="timerwrapper_">
+				<div class="d-flex">
+					<div style="margin:'.$attributes['hours_margin'].'" class="flex-fill text-center">
+						<div style="padding:'.$attributes['boxs_padding'].'px;background-color:'.$attributes['hours_background_color'].';color:'.$attributes['hours_font_color'].'"
+						 class="h"><h1>00</h1><p>'.$attributes['hours_label'].'</p></div>
+					</div>
+					<div style="margin:'.$attributes['minutes_margin'].'" class="flex-fill text-center">
+						<div style="padding:'.$attributes['boxs_padding'].'px;background-color:'.$attributes['minutes_background_color'].';color:'.$attributes['minutes_font_color'].'"
+						 class="m"><h1>00</h1><p>'.$attributes['minutes_label'].'</p></div>
+					</div>
+					<div style="margin:'.$attributes['seconds_margin'].'" class="flex-fill text-center">
+						<div style="padding:'.$attributes['boxs_padding'].'px;background-color:'.$attributes['seconds_background_color'].';color:'.$attributes['seconds_font_color'].'"
+						 class="s"><h1>00</h1><p>'.$attributes['seconds_label'].'</p></div>
 					</div>
 				</div>
 			</div>
@@ -1030,6 +1040,7 @@ class Play_It_Game_Public {
 		$attributes = shortcode_atts( array(
 			'game_id' => null,
 			'label' => "Add Code",
+			'logout_button_label' => "Logout",
 			'submit_button_label' => "Submit",
 			'close_button_label' => "Close",
 			'modal_title' => "Join Team By Code",
@@ -1037,8 +1048,12 @@ class Play_It_Game_Public {
 			'background_color' => "",
 			'font_family' => "inherit"
 		), $atts );
+		
+		// echo $after_login_page_id = get_option('after_login_redirect');		        		
 
-		return '<button type="button" 
+		// wp_logout_url( string $redirect = '' );
+		if ( !is_user_logged_in() ) {
+			return '<button type="button" 
 				class="btn btn-primary" 
 				data-toggle="modal" 
 				data-target="#join_game_by_code_modal" 
@@ -1072,6 +1087,14 @@ class Play_It_Game_Public {
 			    </div>
 			  </div>
 			</div>';
+		}
+		else {
+			return '<a href="'.wp_logout_url().'"
+				class="btn btn-primary" 				
+				style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'"
+			>'.$attributes['logout_button_label'].'</a>';
+		}
+		
 	}
 
 	public function redirect_button_cb( $atts ) {

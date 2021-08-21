@@ -58,7 +58,6 @@ input[type=submit]:hover {
   color: white;
 }
 .button {
-  background-color: #4CAF50; /* Green */
   border: none;
   color: white;
   padding: 15px 32px;
@@ -86,4 +85,21 @@ input[type=submit]:hover {
   padding: 20px;
   text-align: center;
   word-break: break-all;
+}
+
+/* This is bootstrap class but not present in our css so writing here */
+.flex-fill {
+  flex: 1 1 auto;
+}
+
+.d-flex {
+  display: -webkit-box !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+}
+
+.d-inline-flex {
+  display: -webkit-inline-box !important;
+  display: -ms-inline-flexbox !important;
+  display: inline-flex !important;
 }
