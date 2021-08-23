@@ -26,16 +26,28 @@
 				[show_timer 
 					hours_label="HOURS" 
 					minutes_label="MINUTES" 
-					seconds_label="SECONDS" 
+					seconds_label="SECONDS"
+					hours_label_font='inherit'
+					minutes_label_font='inherit'
+					seconds_label_font='inherit'
+					hours_font='inherit'
+					minutes_font='inherit'
+					seconds_font='inherit'
+					hours_label_font_color='#fff'
+					minutes_label_font_color='#fff'
+					seconds_label_font_color='#fff'
+					hours_font_color='#fff'
+					minutes_font_color='#fff'
+					seconds_font_color='#fff'
 					hours_background_color="#cccccc9e" 
 					minutes_background_color="#cccccc9e" 
 					seconds_background_color="#cccccc9e" 
+					hours_label_margin='1px 1px'
+					minutes_label_margin='1px 1px'
+					seconds_label_margin='1px 1px'
 					hours_margin='1px 1px 1px 1px'
 					minutes_margin='1px 1px 1px 1px'
 					seconds_margin='1px 1px 1px 1px'
-					hours_font_color="#FFF" 
-					minutes_font_color="#FFF" 
-					seconds_font_color="#FFF"
 					css_classes=''
 					boxs_padding='20'
 				]</i></p></li>
@@ -43,9 +55,14 @@
 				<li><p>Shortcode for clue: <i>[show_clue label="" seconds_to_add="50" image_url="" text="" css_classes="" background_color="" text_color="" font_family=""]</i></p></li>
 			</ol>
 		</li>
-		<li><p><b>Allow users to login from anywhere by email</b></p>
+		<li><p><b>Allow users to login from anywhere by email</b>(Visible only if user is not loged in)</p>
 			<ol>
 				<li><p>Shortcode for Login By Code: <i>[join_game_by_code redirect_url="https://reactdemo.play-it.co.il/wp-admin" label="Add Code" submit_button_label="Submit" close_button_label="Close" modal_title="Join Team By Code" background_color="" font_family=""]</i></p></li>
+			</ol>
+		</li>
+		<li><p><b>Allow users to logout from anywhere</b>(Visible only if user is loged in)</p>
+			<ol>
+				<li><p>Shortcode for Login By Code: <i>[logout_button redirect_url="https://reactdemo.play-it.co.il/wp-admin" label="Add Code" background_color="" font_family=""]</i></p></li>
 			</ol>
 		</li>
 	</ol>

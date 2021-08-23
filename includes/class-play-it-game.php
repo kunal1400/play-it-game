@@ -194,6 +194,7 @@ class Play_It_Game {
 		$this->loader->add_shortcode( 'show_clue', $plugin_public, 'show_clue_cb' );
 		$this->loader->add_shortcode( 'show_timer', $plugin_public, 'show_timer_cb' );
 		$this->loader->add_shortcode( 'join_game_by_code', $plugin_public, 'join_game_by_code_cb' );
+		$this->loader->add_shortcode( 'logout_button', $plugin_public, 'logout_button_cb' );
 		// $this->loader->add_shortcode( 'redirect_button', $plugin_public, 'redirect_button_cb' );
 
 	}

@@ -302,13 +302,14 @@ class Play_It_Game_Public {
 								$valueToPush = $email;
 							}
 
-							// If admin is login then show option to remove user
-							if( current_user_can('editor') || current_user_can('administrator') ) {
-								$memberUserNames[] = '<span>'.$valueToPush.'<span class="js-removeUserFromTeamSpan rufts" data-teamId="'.$team['id'].'" data-email="'.$email.'">x</span></span>';
-							}
-							else {
-								$memberUserNames[] = $valueToPush;								
-							}
+							// // If admin is login then show option to remove user
+							// if( current_user_can('editor') || current_user_can('administrator') ) {
+							// 	$memberUserNames[] = '<span>'.$valueToPush.'<span class="js-removeUserFromTeamSpan rufts" data-teamId="'.$team['id'].'" data-email="'.$email.'">x</span></span>';
+							// }
+							// else {
+							// 	$memberUserNames[] = $valueToPush;								
+							// }
+								$memberUserNames[] = $valueToPush;
 						}
 					}
 
@@ -900,46 +901,51 @@ class Play_It_Game_Public {
 
 	public function show_timer_cb( $atts ) {
 		$attributes = shortcode_atts( array(
-			// labels attribute
+			// Labels attribute
 			'hours_label' => 'Hours',
 			'minutes_label' => 'Minutes',
 			'seconds_label' => 'Seconds',
+
+			// Fonts Family attributes
+			'hours_label_font' => 'inherit',
+			'minutes_label_font' => 'inherit',
+			'seconds_label_font' => 'inherit',
+			'hours_font' => 'inherit',
+			'minutes_font' => 'inherit',
+			'seconds_font' => 'inherit',
+
+			// Font color attributes
+			'hours_label_font_color' => '#fff',
+			'minutes_label_font_color' => '#fff',
+			'seconds_label_font_color' => '#fff',
+			'hours_font_color' => '#fff',
+			'minutes_font_color' => '#fff',
+			'seconds_font_color' => '#fff',
+
 			// background color attributes
 			'hours_background_color' => '#cccccc9e',
 			'minutes_background_color' => '#cccccc9e',
 			'seconds_background_color' => '#cccccc9e',
-			// margins for hours, minutes and seconds
+
+			// Margin attributes
+			'hours_label_margin' => '1px 1px',
+			'minutes_label_margin' => '1px 1px',
+			'seconds_label_margin' => '1px 1px',
 			'hours_margin' => '1px 1px 1px 1px',
 			'minutes_margin' => '1px 1px 1px 1px',
 			'seconds_margin' => '1px 1px 1px 1px',
-			// Font color attributes
-			'hours_font_color' => '#fff',
-			'minutes_font_color' => '#fff',
-			'seconds_font_color' => '#fff',
+
 			// Css classes
 			'css_classes' => '',
 			// Paddings
 			'boxs_padding' => '20',
 		), $atts );
 
-		return '<div class="timer '.$attributes['css_classes'].'">
-			<div class="timerwrapper_">
-				<div class="d-flex">
-					<div style="margin:'.$attributes['hours_margin'].'" class="flex-fill text-center">
-						<div style="padding:'.$attributes['boxs_padding'].'px;background-color:'.$attributes['hours_background_color'].';color:'.$attributes['hours_font_color'].'"
-						 class="h"><h1>00</h1><p>'.$attributes['hours_label'].'</p></div>
-					</div>
-					<div style="margin:'.$attributes['minutes_margin'].'" class="flex-fill text-center">
-						<div style="padding:'.$attributes['boxs_padding'].'px;background-color:'.$attributes['minutes_background_color'].';color:'.$attributes['minutes_font_color'].'"
-						 class="m"><h1>00</h1><p>'.$attributes['minutes_label'].'</p></div>
-					</div>
-					<div style="margin:'.$attributes['seconds_margin'].'" class="flex-fill text-center">
-						<div style="padding:'.$attributes['boxs_padding'].'px;background-color:'.$attributes['seconds_background_color'].';color:'.$attributes['seconds_font_color'].'"
-						 class="s"><h1>00</h1><p>'.$attributes['seconds_label'].'</p></div>
-					</div>
-				</div>
-			</div>
-		</div>';
+		ob_start();
+		include "shortcodes/timer_html.php";
+		// return the buffer contents and delete
+	    return ob_get_clean();
+
 	}
 
 	/**
@@ -1101,46 +1107,26 @@ class Play_It_Game_Public {
 
 		// wp_logout_url( string $redirect = '' );
 		if ( !is_user_logged_in() ) {
-			return '<button type="button" 
-				class="btn btn-primary" 
-				data-toggle="modal" 
-				data-target="#join_game_by_code_modal" 
-				style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'"
-			>'.$attributes['label'].'</button>
-			<div class="modal fade" id="join_game_by_code_modal" tabindex="-1" role="dialog" aria-labelledby="join_game_by_code_modal_label" aria-hidden="true">
-			  <div class="modal-dialog modal-dialog-centered" role="document">
-			    <div class="modal-content">
-			      <div class="modal-header">
-			        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        			<h4 class="modal-title" id="myModalLabel">'.$attributes['modal_title'].'</h4>
-			      </div>
-					<form onsubmit="return applyCodeForGame()" method="post" id="codeLoginForm">
-			      		<div class="modal-body">
-				        	<div class="md-form mb-5">
-								<label for="form34">User Name</label>
-								<input type="text" id="form34" name="user_name" class="form-control" value="">
-					        </div>
-					        <div style="display:none" class="md-form mb-5">
-								<label for="form35">Code</label>
-								<input type="text" id="form35" name="user_code" class="form-control" value="">
-					        </div>
-				      	</div>
-			      		<div class="modal-footer">
-			      			<input type="hidden" name="game_id" value="'.$attributes['game_id'].'" />
-			      			<input type="hidden" name="redirect_url" value="'.$attributes['redirect_url'].'" />
-			        		<button type="button" class="btn btn-secondary" data-dismiss="modal">'.$attributes['close_button_label'].'</button>
-			        		<button type="submit" class="btn btn-primary">'.$attributes['submit_button_label'].'</button>
-			      		</div>
-			    	</form>
-			    </div>
-			  </div>
-			</div>';
+			ob_start();
+			include 'login_by_code.php';
+			return ob_get_clean();			
 		}
-		else {
-			return '<a href="'.wp_logout_url().'"
-				class="btn btn-primary" 				
-				style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'"
-			>'.$attributes['logout_button_label'].'</a>';
+		// else {
+		// 	return '<a href="'.wp_logout_url().'" class="btn btn-primary" style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'">'.$attributes['logout_button_label'].'</a>';
+		// }
+		
+	}
+
+	public function logout_button_cb( $atts ) {
+		$attributes = shortcode_atts( array(
+			'label' => "Logout",
+			'redirect_url' => site_url(),
+			'background_color' => "",
+			'font_family' => "inherit"
+		), $atts );
+
+		if ( is_user_logged_in() ) {
+			return '<a href="'.wp_logout_url().'" class="btn btn-primary" style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'">'.$attributes['label'].'</a>';
 		}
 		
 	}
