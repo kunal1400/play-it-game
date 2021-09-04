@@ -900,52 +900,46 @@ class Play_It_Game_Public {
 	}
 
 	public function show_timer_cb( $atts ) {
-		$attributes = shortcode_atts( array(
-			// Labels attribute
-			'hours_label' => 'Hours',
-			'minutes_label' => 'Minutes',
-			'seconds_label' => 'Seconds',
-
-			// Fonts Family attributes
-			'hours_label_font' => 'inherit',
-			'minutes_label_font' => 'inherit',
-			'seconds_label_font' => 'inherit',
-			'hours_font' => 'inherit',
-			'minutes_font' => 'inherit',
-			'seconds_font' => 'inherit',
-
-			// Font color attributes
-			'hours_label_font_color' => '#fff',
-			'minutes_label_font_color' => '#fff',
-			'seconds_label_font_color' => '#fff',
-			'hours_font_color' => '#fff',
-			'minutes_font_color' => '#fff',
-			'seconds_font_color' => '#fff',
-
-			// background color attributes
-			'hours_background_color' => '#cccccc9e',
-			'minutes_background_color' => '#cccccc9e',
-			'seconds_background_color' => '#cccccc9e',
-
-			// Margin attributes
-			'hours_label_margin' => '1px 1px',
-			'minutes_label_margin' => '1px 1px',
-			'seconds_label_margin' => '1px 1px',
-			'hours_margin' => '1px 1px 1px 1px',
-			'minutes_margin' => '1px 1px 1px 1px',
-			'seconds_margin' => '1px 1px 1px 1px',
-
-			// Css classes
-			'css_classes' => '',
-			// Paddings
-			'boxs_padding' => '20',
-		), $atts );
-
-		ob_start();
-		include "shortcodes/timer_html.php";
-		// return the buffer contents and delete
-	    return ob_get_clean();
-
+		// $attributes = shortcode_atts( array(
+		// 	// Labels attribute
+		// 	'hours_label' => 'Hours',
+		// 	'minutes_label' => 'Minutes',
+		// 	'seconds_label' => 'Seconds',
+		// 	// Fonts Family attributes
+		// 	'hours_label_font' => 'inherit',
+		// 	'minutes_label_font' => 'inherit',
+		// 	'seconds_label_font' => 'inherit',
+		// 	'hours_font' => 'inherit',
+		// 	'minutes_font' => 'inherit',
+		// 	'seconds_font' => 'inherit',
+		// 	// Font color attributes
+		// 	'hours_label_font_color' => '#fff',
+		// 	'minutes_label_font_color' => '#fff',
+		// 	'seconds_label_font_color' => '#fff',
+		// 	'hours_font_color' => '#fff',
+		// 	'minutes_font_color' => '#fff',
+		// 	'seconds_font_color' => '#fff',
+		// 	// background color attributes
+		// 	'hours_background_color' => '#cccccc9e',
+		// 	'minutes_background_color' => '#cccccc9e',
+		// 	'seconds_background_color' => '#cccccc9e',
+		// 	// Margin attributes
+		// 	'hours_label_margin' => '1px 1px',
+		// 	'minutes_label_margin' => '1px 1px',
+		// 	'seconds_label_margin' => '1px 1px',
+		// 	'hours_margin' => '1px 1px 1px 1px',
+		// 	'minutes_margin' => '1px 1px 1px 1px',
+		// 	'seconds_margin' => '1px 1px 1px 1px',
+		// 	// Css classes
+		// 	'css_classes' => '',
+		// 	// Paddings
+		// 	'boxs_padding' => '20',
+		// ), $atts );
+		// ob_start();
+		// include "shortcodes/timer_html.php";
+		// // return the buffer contents and delete
+		//    return ob_get_clean();
+		return "This is the timer HTML";
 	}
 
 	/**
@@ -1091,29 +1085,29 @@ class Play_It_Game_Public {
 	}
 
 	public function join_game_by_code_cb( $atts ) {
-		$attributes = shortcode_atts( array(
-			'game_id' => null,
-			'label' => "Add Code",
-			'logout_button_label' => "Logout",
-			'submit_button_label' => "Submit",
-			'close_button_label' => "Close",
-			'modal_title' => "Join Team By Code",
-			'redirect_url' => site_url(),
-			'background_color' => "",
-			'font_family' => "inherit"
-		), $atts );
+		// $attributes = shortcode_atts( array(
+		// 	'game_id' => null,
+		// 	'label' => "Add Code",
+		// 	'logout_button_label' => "Logout",
+		// 	'submit_button_label' => "Submit",
+		// 	'close_button_label' => "Close",
+		// 	'modal_title' => "Join Team By Code",
+		// 	'redirect_url' => site_url(),
+		// 	'background_color' => "",
+		// 	'font_family' => "inherit"
+		// ), $atts );
 		
-		// echo $after_login_page_id = get_option('after_login_redirect');		        		
+		// // echo $after_login_page_id = get_option('after_login_redirect');		        		
 
-		// wp_logout_url( string $redirect = '' );
-		if ( !is_user_logged_in() ) {
-			ob_start();
-			include 'login_by_code.php';
-			return ob_get_clean();			
-		}
-		// else {
-		// 	return '<a href="'.wp_logout_url().'" class="btn btn-primary" style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'">'.$attributes['logout_button_label'].'</a>';
+		// // wp_logout_url( string $redirect = '' );
+		// if ( !is_user_logged_in() ) {
+		// 	ob_start();
+		// 	include 'shortcodes/login_by_code.php';
+		// 	return ob_get_clean();
 		// }
+		// // else {
+		// // 	return '<a href="'.wp_logout_url().'" class="btn btn-primary" style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'">'.$attributes['logout_button_label'].'</a>';
+		// // }
 		
 	}
 
