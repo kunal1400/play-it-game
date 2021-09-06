@@ -117,3 +117,11 @@ input[type=submit]:hover {
   display: -ms-inline-flexbox !important;
   display: inline-flex !important;
 }
+.completedBarWrapper {
+  border: 1px solid #049404;
+}
+.completedBarPercentage {
+  display: inline-block;
+  height: 10px;
+  background-color: #41e441;
+}

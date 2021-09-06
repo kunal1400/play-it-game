@@ -302,14 +302,14 @@ class Play_It_Game_Public {
 								$valueToPush = $email;
 							}
 
-							// // If admin is login then show option to remove user
-							// if( current_user_can('editor') || current_user_can('administrator') ) {
-							// 	$memberUserNames[] = '<span>'.$valueToPush.'<span class="js-removeUserFromTeamSpan rufts" data-teamId="'.$team['id'].'" data-email="'.$email.'">x</span></span>';
-							// }
-							// else {
-							// 	$memberUserNames[] = $valueToPush;								
-							// }
+							// If admin is login then show option to remove user
+							if( current_user_can('editor') || current_user_can('administrator') ) {
+								$memberUserNames[] = '<p>'.$valueToPush.'<span class="js-removeUserFromTeamSpan rufts" data-teamId="'.$team['id'].'" data-email="'.$email.'">x</span></p>';
+							}
+							else {
 								$memberUserNames[] = $valueToPush;
+							}
+								// $memberUserNames[] = $valueToPush;
 						}
 					}
 
@@ -332,6 +332,8 @@ class Play_It_Game_Public {
 						$buttons = '-';
 					}
 
+					$completedBarPercentage = ((int)$team['cleared_levels']/(int)$team['total_levels'])*100;
+
 					$html .= '<tr>';
 					$html .= '<td>'.($i+1).'</td>';
 					if ($isTeamGame) {
@@ -340,7 +342,12 @@ class Play_It_Game_Public {
 					$html .= '<td>'.$team['total_time_taken'].'</td>';
 					$html .= '<td>'.$team['clue_seconds'].'</td>';
 					$html .= '<td>'.round($team['total_score']/$scoreMultipler, 0).'</td>';
-					$html .= '<td>'.$team['cleared_levels'].'/'.$team['total_levels'].'</td>';
+					$html .= '<td>
+						<p>'.$team['cleared_levels'].'/'.$team['total_levels'].'</p>
+						<div class="completedBarWrapper">
+							<span class="completedBarPercentage" style="width:'.$completedBarPercentage.'%"></span>
+						</div>
+					</td>';
 					$html .= '<td>'.implode(", ", $memberUserNames).'</td>';
 					if (!$isSubLevel) {
 						$html .= '<td>'.$buttons.'</td>';
@@ -1112,16 +1119,16 @@ class Play_It_Game_Public {
 	}
 
 	public function logout_button_cb( $atts ) {
-		$attributes = shortcode_atts( array(
-			'label' => "Logout",
-			'redirect_url' => site_url(),
-			'background_color' => "",
-			'font_family' => "inherit"
-		), $atts );
+		// $attributes = shortcode_atts( array(
+		// 	'label' => "Logout",
+		// 	'redirect_url' => site_url(),
+		// 	'background_color' => "",
+		// 	'font_family' => "inherit"
+		// ), $atts );
 
-		if ( is_user_logged_in() ) {
-			return '<a href="'.wp_logout_url().'" class="btn btn-primary" style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'">'.$attributes['label'].'</a>';
-		}
+		// if ( is_user_logged_in() ) {
+		// 	return '<a href="'.wp_logout_url().'" class="btn btn-primary" style="background-color:'.$attributes['background_color'].';border: 1px solid '.$attributes['background_color'].';font-family:'.$attributes['font_family'].'">'.$attributes['label'].'</a>';
+		// }
 		
 	}
 
