@@ -119,9 +119,13 @@ input[type=submit]:hover {
 }
 .completedBarWrapper {
   border: 1px solid #049404;
+  line-height: normal;
+  height: 15px;
+  overflow: hidden;
+  border-radius: 3px;
 }
 .completedBarPercentage {
   display: inline-block;
-  height: 10px;
+  height: 15px;
   background-color: #41e441;
 }

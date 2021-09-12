@@ -1069,26 +1069,26 @@ class Play_It_Game_Public {
 			'font_family' => "inherit"
 		), $atts );
 
-		$secondsToAdd = $attributes['seconds_to_add'];
-		if ($secondsToAdd && $secondsToAdd > 0) {
-			$str = "<div class='cluewrapper ".$attributes['css_classes']."'>";
-				$str .= "<a style='background-color:".$attributes['background_color'].";color:".$attributes['text_color'].";font-family:".$attributes['font_family']."' data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>".$attributes['label']."</a>";
-				$str .= "<div class='clue' style='display:none'>";
-					if (!empty($attributes['image_url'])) {
-						$str .= "<div class='imagewrapper'>
-							<img src='".$attributes['image_url']."'/>
-						</div>";
-					}
-					if (!empty($attributes['text'])) {
-						$str .= "<div class='textwrapper'>".$attributes['text']."</div>";
-					}
-				$str .= "</div>";
-			$str .= "</div>";
-			return $str;
-		}
-		else {
-			return;
-		}
+		// $secondsToAdd = $attributes['seconds_to_add'];
+		// if ($secondsToAdd && $secondsToAdd > 0) {
+		// 	$str = "<div class='cluewrapper ".$attributes['css_classes']."'>";
+		// 		$str .= "<a style='background-color:".$attributes['background_color'].";color:".$attributes['text_color'].";font-family:".$attributes['font_family']."' data-secondsToAdd='".$secondsToAdd."' href='javascript:void(0)' onclick='showclue(this)' class=''>".$attributes['label']."</a>";
+		// 		$str .= "<div class='clue' style='display:none'>";
+		// 			if (!empty($attributes['image_url'])) {
+		// 				$str .= "<div class='imagewrapper'>
+		// 					<img src='".$attributes['image_url']."'/>
+		// 				</div>";
+		// 			}
+		// 			if (!empty($attributes['text'])) {
+		// 				$str .= "<div class='textwrapper'>".$attributes['text']."</div>";
+		// 			}
+		// 		$str .= "</div>";
+		// 	$str .= "</div>";
+		// 	return $str;
+		// }
+		// else {
+		// 	return;
+		// }
 	}
 
 	public function join_game_by_code_cb( $atts ) {
